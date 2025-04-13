@@ -3,8 +3,9 @@ package lexeur;
 // ici j'énumère les types de tokens
 public enum TypeJeton {
 
-    Si, Sinon, TantQue, Retourne, Pour, Fonction, Classe, // ici je mets mes mots-clés
-
+    Si, Sinon, TantQue,//deja implemente
+    Retourne, Pour, Fonction, Classe, // ici je mets mes mots-clés
+    //deja implemente
     Entier, Flottant, Booleen, Caractere, Texte, Vide, // ici je mets mes types de données
 
     Plus, Moins, Mult, Div, Modulo, Incr, Decr, // ici je mets mes opérateurs arithmétiques

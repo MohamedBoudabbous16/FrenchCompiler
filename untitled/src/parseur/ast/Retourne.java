@@ -9,6 +9,6 @@ public class Retourne extends Instruction{
 
     @Override
     public String genJava() {
-        return "return" + expression.genJava()+";";
+        return "return " + expression.genJava()+";";
     }
 }

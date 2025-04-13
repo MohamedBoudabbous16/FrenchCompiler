@@ -10,6 +10,6 @@ public class Identifiant extends Expression{
 
     @Override
     public String genJava() {
-        return this.nom = nom;
+        return nom;
     }
 }

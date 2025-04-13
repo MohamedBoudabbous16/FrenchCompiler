@@ -22,20 +22,24 @@ public class Fonction implements Noeud {
         return corps;
     }
     @Override
-    public String genJava(){
+    public String genJava() {
         StringBuilder ins = new StringBuilder();
-        ins.append("public static Object").append(nom).append("(");
-        //je retranscris la signature de la methode
+        ins.append("public static Object ").append(nom).append("("); // <--- espace ajouté ici
+
+        // Signature des paramètres
         for (int i = 0; i < param.size(); i++) {
             ins.append("Object ").append(param.get(i));
             if (i < param.size() - 1) {
                 ins.append(", ");
             }
         }
-        ins.append(")");
-        //maintenant je mets mon Bloc (plusieurs instructions
-        ins.append(corps.genJava());
-        return ins.toString();
 
+        ins.append(")");
+
+        // Corps de la fonction
+        ins.append(corps.genJava());
+
+        return ins.toString();
     }
+
 }

@@ -1,4 +1,9 @@
 package parseur.ast;
 
-public class Noeud {
+public interface Noeud {
+    /**
+     *
+     * @return le code java qui correwspond au noeud
+     */
+    String genJava();
 }

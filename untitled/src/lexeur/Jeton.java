@@ -15,7 +15,7 @@ package lexeur;
  * - sa valeur brute (chaîne de caractères lue dans le texte source)
  * - sa position dans le code (numéro de ligne et de colonne)
  */
-public class    Jeton {
+public class Jeton {
 
     // Le type du jeton (ex: Si, Identifiant, Plus, Nombre...)
     private final TypeJeton type;

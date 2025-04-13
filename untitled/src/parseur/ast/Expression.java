@@ -1,4 +1,4 @@
 package parseur.ast;
 
-public class Expression {
+public abstract class Expression implements Noeud {
 }

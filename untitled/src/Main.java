@@ -11,7 +11,7 @@ import java.nio.file.Path;
 public class Main {
 
     // =========================
-    // TEST AFFICHE (optionnel)
+    // TEST AFFICHE
     // =========================
     public static void mainAfficheTest() {
         String source = """
@@ -24,13 +24,52 @@ public class Main {
             }
             """;
 
+        lancerTest("TEST AFFICHE", source);
+    }
+
+    // =========================
+    // TEST CONCAT OK
+    // =========================
+    public static void mainConcatOKTest() {
+        String source = """
+            fonction main() {
+              x = 3;
+              s = "valeur = " + x;
+              retourne s;
+            }
+            """;
+
+        lancerTest("TEST CONCAT OK", source);
+    }
+
+    // =========================
+    // TEST CONCAT KO
+    // =========================
+    public static void mainConcatKOTest() {
+        String source = """
+            fonction main() {
+              x = 3;
+              s = x + "test";
+              retourne s;
+            }
+            """;
+
+        lancerTest("TEST CONCAT KO (ERREUR ATTENDUE)", source);
+    }
+
+    // =========================
+    // MÉTHODE COMMUNE DE TEST
+    // =========================
+    private static void lancerTest(String nom, String source) {
+        System.out.println("\n===== " + nom + " =====");
+
         try {
             Programme programme = AnaSynt.analyser(source);
             AnalyseSemantique sem = new AnalyseSemantique();
             sem.verifier(programme);
 
-            System.out.println("===== TEST AFFICHE =====");
             System.out.println(programme.genJava(sem));
+            System.out.println("✅ Test réussi");
 
         } catch (ErreurSemantique e) {
             System.err.println("❌ Erreur sémantique : " + e.getMessage());
@@ -41,20 +80,35 @@ public class Main {
     // MAIN PRINCIPAL
     // =========================
     public static void main(String[] args) {
-        // 🔹 Mode test affiche
-        if (args.length == 1 && args[0].equals("--test-affiche")) {
-            mainAfficheTest();
-            return;
+
+        // 🔹 Modes de test dédiés
+        if (args.length == 1) {
+            switch (args[0]) {
+                case "--test-affiche" -> {
+                    mainAfficheTest();
+                    return;
+                }
+                case "--test-concat-ok" -> {
+                    mainConcatOKTest();
+                    return;
+                }
+                case "--test-concat-ko" -> {
+                    mainConcatKOTest();
+                    return;
+                }
+            }
         }
 
+        // =========================
+        // MODE NORMAL (fichier)
+        // =========================
         try {
-            // 1) Lire le programme source (fichier ou string)
             String source;
+
             if (args.length >= 1) {
                 Path inputPath = Path.of(args[0]);
                 source = Files.readString(inputPath, StandardCharsets.UTF_8);
             } else {
-                // Exemple par défaut
                 source = """
                         fonction main() {
                             x = 0;
@@ -64,32 +118,27 @@ public class Main {
                             retourne x;
                         }
                         """;
+
                 System.out.println(
                         "Aucun fichier fourni -> utilisation d'un exemple interne.\n" +
-                                "Usage: java Main <source.txt> [Sortie.java]\n"
+                                "Usage:\n" +
+                                "  java Main fichier.txt\n" +
+                                "  java Main --test-affiche\n" +
+                                "  java Main --test-concat-ok\n" +
+                                "  java Main --test-concat-ko\n"
                 );
             }
 
-            // 2) Parser -> AST
             Programme programme = AnaSynt.analyser(source);
-
-            // 3) Analyse sémantique
             AnalyseSemantique sem = new AnalyseSemantique();
             sem.verifier(programme);
 
-            // 4) Générer le code Java
             String javaCode = programme.genJava(sem);
 
-            // 5) Afficher le Java généré
             System.out.println("===== JAVA GÉNÉRÉ =====");
             System.out.println(javaCode);
 
-            // 6) Écrire dans un fichier .java
-            String outputFileName = (args.length >= 2)
-                    ? args[1]
-                    : "ProgrammePrincipal.java";
-
-            Path outputPath = Path.of(outputFileName);
+            Path outputPath = Path.of("ProgrammePrincipal.java");
             Files.writeString(outputPath, javaCode, StandardCharsets.UTF_8);
 
             System.out.println("\n✅ Fichier Java généré : " + outputPath.toAbsolutePath());

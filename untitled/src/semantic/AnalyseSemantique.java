@@ -177,36 +177,75 @@ public class AnalyseSemantique {
             TypeSimple d = typerExpression(b.getDroite());
             String op = b.getop();
 
-            if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/") || op.equals("%")) {
+            // ===== CONCATÉNATION TEXTE =====
+            if (op.equals("+")) {
+
+                // TEXTE + (TEXTE | ENTIER | BOOLEEN | CARACTERE) => TEXTE
+                if (g == TypeSimple.TEXTE &&
+                        (d == TypeSimple.TEXTE
+                                || d == TypeSimple.ENTIER
+                                || d == TypeSimple.BOOLEEN
+                                || d == TypeSimple.CARACTERE)) {
+                    return TypeSimple.TEXTE;
+                }
+
+                // ENTIER + ENTIER => ENTIER (arithmétique)
+                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) {
+                    return TypeSimple.ENTIER;
+                }
+
+                // Sinon erreur
+                throw new ErreurSemantique(
+                        msg("Concaténation invalide : '" + g + " + " + d +
+                                "'. TEXTE doit être à gauche.")
+                );
+            }
+
+            // ===== ARITHMÉTIQUE CLASSIQUE =====
+            if (op.equals("-") || op.equals("*") || op.equals("/") || op.equals("%")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
-                    throw new ErreurSemantique(msg("Opérateur '" + op + "' attend ENTIER,ENTIER."));
+                    throw new ErreurSemantique(
+                            msg("Opérateur '" + op + "' attend ENTIER,ENTIER.")
+                    );
                 }
                 return TypeSimple.ENTIER;
             }
 
+            // ===== COMPARAISONS =====
             if (op.equals("<") || op.equals("<=") || op.equals(">") || op.equals(">=")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
-                    throw new ErreurSemantique(msg("Comparaison '" + op + "' attend ENTIER,ENTIER."));
+                    throw new ErreurSemantique(
+                            msg("Comparaison '" + op + "' attend ENTIER,ENTIER.")
+                    );
                 }
                 return TypeSimple.BOOLEEN;
             }
 
+            // ===== ÉGALITÉ =====
             if (op.equals("==") || op.equals("!=")) {
                 if (g != d) {
-                    throw new ErreurSemantique(msg("Test '" + op + "' attend deux opérandes du même type."));
+                    throw new ErreurSemantique(
+                            msg("Test '" + op + "' attend deux opérandes du même type.")
+                    );
                 }
                 return TypeSimple.BOOLEEN;
             }
 
+            // ===== LOGIQUE =====
             if (op.equals("&&") || op.equals("||")) {
                 if (g != TypeSimple.BOOLEEN || d != TypeSimple.BOOLEEN) {
-                    throw new ErreurSemantique(msg("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN."));
+                    throw new ErreurSemantique(
+                            msg("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN.")
+                    );
                 }
                 return TypeSimple.BOOLEEN;
             }
 
-            throw new ErreurSemantique(msg("Opérateur binaire inconnu : " + op));
+            throw new ErreurSemantique(
+                    msg("Opérateur binaire inconnu : " + op)
+            );
         }
+
 
         throw new ErreurSemantique(msg("Expression non gérée : " + e.getClass().getSimpleName()));
     }

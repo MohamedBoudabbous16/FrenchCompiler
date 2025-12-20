@@ -42,4 +42,5 @@ public class Fonction implements Noeud {
         return ins.toString();
     }
 
+
 }

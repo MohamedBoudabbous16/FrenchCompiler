@@ -68,15 +68,15 @@ public class Lexeur {
     }
 
     public List<Jeton> analyser() {
-    /**
-     * Analyse le texte source et génère une liste de jetons.
-     * Cette méthode constitue le point d'entrée principal de l'analyse lexicale.
-     * Elle parcourt le texte caractère par caractère et identifie les lexèmes
-     * pour construire des objets Jeton correspondants aux mots-clés, identifiants,
-     * opérateurs, symboles, nombres, etc.
-     *
-     * @return une liste de jetons représentant le code source analysé
-     */
+        /**
+         * Analyse le texte source et génère une liste de jetons.
+         * Cette méthode constitue le point d'entrée principal de l'analyse lexicale.
+         * Elle parcourt le texte caractère par caractère et identifie les lexèmes
+         * pour construire des objets Jeton correspondants aux mots-clés, identifiants,
+         * opérateurs, symboles, nombres, etc.
+         *
+         * @return une liste de jetons représentant le code source analysé
+         */
         List<Jeton> jetons = new ArrayList<>();
 
         while (!estTermine()) {
@@ -115,7 +115,17 @@ public class Lexeur {
             return lireMotOuIdentifiant();
         } else if (Character.isDigit(c)) {
             return lireNombre();
+        } else if (c == '"') {
+            return lireTexteLitteral();
+        } else if (c == '\'') {
+            return lireCaractereLitteral();
         } else {
+            if (c == '/' && prochainCaractere() == '/') {
+                avancer('/');
+                avancer('/');
+                ignorerCommentaireLigne();
+                return null;
+            }
             return lireSymbole();
         }
 
@@ -145,10 +155,10 @@ public class Lexeur {
     }
 
     private Jeton lireNombre() {
-    /** Lire une suite de chiffres pour construire un nombre entier.
-     * Exemple : "42", "100", "7"
-     * @return un objet Jeton de type Nombre
-     */
+        /** Lire une suite de chiffres pour construire un nombre entier.
+         * Exemple : "42", "100", "7"
+         * @return un objet Jeton de type Nombre
+         */
         int colonneDepart = colonne;
         StringBuilder nombre = new StringBuilder();
         while (!estTermine() && Character.isDigit(caractereActuel())) {
@@ -178,31 +188,88 @@ public class Lexeur {
         return new Jeton(SYMBOLES.get(symbole), symbole, ligne, colonneDepart);
     }
 
+    private Jeton lireTexteLitteral() {
+        int colonneDepart = colonne;
+
+        avancer('"');
+
+        StringBuilder sb = new StringBuilder();
+
+        while (!estTermine() && caractereActuel() != '"') {
+            char c = caractereActuel();
+
+            if (c == '\n') {
+                throw new RuntimeException("TexteLitteral non terminé à la ligne " + ligne + ", colonne " + colonneDepart);
+            }
+
+            sb.append(c);
+            avancer(c);
+        }
+
+        if (estTermine()) {
+            throw new RuntimeException("TexteLitteral non terminé (\" manquant) à la fin du fichier");
+        }
+
+        avancer('"');
+
+        return new Jeton(TypeJeton.TexteLitteral, sb.toString(), ligne, colonneDepart);
+    }
+
+    private Jeton lireCaractereLitteral() {
+        int colonneDepart = colonne;
+
+        avancer('\'');
+
+        if (estTermine() || caractereActuel() == '\n' || caractereActuel() == '\'') {
+            throw new RuntimeException("CaractereLitteral invalide à la ligne " + ligne + ", colonne " + colonneDepart);
+        }
+
+        char valeur = caractereActuel();
+        avancer(valeur);
+
+        if (estTermine() || caractereActuel() != '\'') {
+            throw new RuntimeException("CaractereLitteral non terminé (') manquant) à la ligne " + ligne + ", colonne " + colonneDepart);
+        }
+
+        avancer('\'');
+
+        return new Jeton(TypeJeton.CaractereLitteral, String.valueOf(valeur), ligne, colonneDepart);
+    }
+
+    private void ignorerCommentaireLigne() {
+        while (!estTermine() && caractereActuel() != '\n') {
+            avancer(caractereActuel());
+        }
+        if (!estTermine() && caractereActuel() == '\n') {
+            avancer('\n');
+        }
+    }
+
+    private char prochainCaractere() {
+        if (position + 1 >= texte.length()) return '\0';
+        return texte.charAt(position + 1);
+    }
+
     private void avancer() {
-    /**avance d’un seul caractère dans le texte tout en mettant à jour la position, la ligne et la colonne
-     * @return void
-     */
+        /**avance d’un seul caractère dans le texte tout en mettant à jour la position, la ligne et la colonne
+         * @return void
+         */
         if (estTermine()) return;
 
         char c = texte.charAt(position);
+        avancer(c);
+    }
+    private void avancer(char caractere) {
+        if (estTermine()) return;
+
         position++;
 
-        if (position + 3 <= texte.length() &&
-                texte.charAt(position) == '/' &&
-                texte.charAt(position + 1) == 'l' &&
-                texte.charAt(position + 2) == 's' &&
-                texte.charAt(position + 3) == '/') {
-            position += 4;
+        if (caractere == '\n') {
             ligne++;
             colonne = 1;
         } else {
             colonne++;
         }
-    }
-    private void avancer(char caractere) {
-        if (estTermine()) return;
-        position++;
-        colonne++;
     }
 
     private boolean estTermine() {

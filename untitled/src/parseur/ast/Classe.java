@@ -97,12 +97,30 @@ public class Classe implements Noeud{
     public String genJava(semantic.AnalyseSemantique sem) {
         StringBuilder cls = new StringBuilder();
         cls.append("public class ").append(nom).append(" {\n\n");
+
+        boolean aUneFonctionMain = false;
+        for (Fonction f : fonctions) {
+            if ("main".equals(f.getNom())) {
+                aUneFonctionMain = true;
+                break;
+            }
+        }
+
+        // Wrapper Java exécutable
+        if (aUneFonctionMain) {
+            cls.append("  public static void main(String[] args) {\n");
+            cls.append("    Object res = main();\n");
+            cls.append("    System.out.println(res);\n");
+            cls.append("  }\n\n");
+        }
+
         if (!fonctions.isEmpty()) {
             cls.append("  // Méthodes\n");
             for (Fonction f : fonctions) {
                 cls.append("  ").append(f.genJava(sem).replaceAll("\n", "\n  ")).append("\n\n");
             }
         }
+
         cls.append("}\n");
         return cls.toString();
     }

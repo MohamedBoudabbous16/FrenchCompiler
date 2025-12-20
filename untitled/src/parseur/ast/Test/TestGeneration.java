@@ -1,5 +1,7 @@
 package parseur.ast.Test;
 
+import lexeur.Jeton;
+import lexeur.Lexeur;
 import parseur.ast.*;
 
 import java.io.FileWriter;
@@ -10,6 +12,29 @@ public class TestGeneration {
 
     public static void main(String[] args) {
 
+        // =========================
+        // TEST LEXEUR (minimal)
+        // =========================
+        String source = """
+                fonction main() {
+                  // commentaire
+                  s = "hello";
+                  c = 'A';
+                  retourne 0;
+                }
+                """;
+
+        Lexeur lexeur = new Lexeur(source);
+        List<Jeton> jetons = lexeur.analyser();
+
+        System.out.println("===== JETONS PRODUITS PAR LE LEXEUR =====");
+        for (Jeton j : jetons) {
+            System.out.println(j.getType() + " -> '" + j.getValeur() + "' (ligne " + j.getLigne() + ", col " + j.getColonne() + ")");
+        }
+
+        // =========================
+        // TON TEST AST (existant)
+        // =========================
         Fonction somme = new Fonction(
                 "somme",
                 List.of("a", "b"),

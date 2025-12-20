@@ -1,18 +1,17 @@
 public class ProgrammePrincipal {
 
-  public static void main(String[] args) {
-    Object res = main();
-    System.out.println(res);
-  }
-
   // Méthodes
-  public static Object main() {
+  public static int f() {
     int x;
-    x=0;
-      while ((x < 5)) {
-      x=(x + 1);
-    }
+    x=1;
       return x;
+  }
+  
+
+  public static void g() {
+    int x;
+    x=1;
+      x=(x + 1);
   }
   
 

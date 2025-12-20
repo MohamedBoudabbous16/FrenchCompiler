@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class AnalyseSemantique {
 
+    private final Map<String, TypeSimple> retourParFonction = new HashMap<>();
+    private TypeSimple retourCourant = null;
     private final Map<String, Map<String, TypeSimple>> varsParFonction = new HashMap<>();
     private final TableSymboles ts = new TableSymboles();
     private String fonctionCourante = "??";
@@ -21,6 +23,10 @@ public class AnalyseSemantique {
             }
         }
     }
+    public TypeSimple typeRetourDe(String nomFonction) {
+        return retourParFonction.getOrDefault(nomFonction, TypeSimple.INCONNU);
+    }
+
 
     public Map<String, TypeSimple> variablesDe(String nomFonction) {
         return varsParFonction.getOrDefault(nomFonction, Map.of());
@@ -32,6 +38,7 @@ public class AnalyseSemantique {
         // Table des variables inférées de cette fonction
         varsParFonction.put(fonctionCourante, new HashMap<>());
 
+        retourCourant = null;
         ts.entrerPortee(); // portée de la fonction
 
         // Paramètres : si ton langage n’a pas de types, tu peux choisir ENTIER par défaut
@@ -43,6 +50,7 @@ public class AnalyseSemantique {
         verifierBloc(f.getCorps());
 
         ts.sortirPortee();
+        retourParFonction.put(fonctionCourante, (retourCourant == null) ? TypeSimple.VIDE : retourCourant);
     }
 
     private void verifierBloc(Bloc bloc) {
@@ -59,6 +67,11 @@ public class AnalyseSemantique {
             verifierBloc(b);
             return;
         }
+        if (i instanceof parseur.ast.Affiche a) {
+            typerExpression(a.getExpression()); // accepte tous types (int/bool/string/char)
+            return;
+        }
+
 
         if (i instanceof Affectation a) {
             TypeSimple tExpr = typerExpression(a.getExpression());
@@ -81,9 +94,17 @@ public class AnalyseSemantique {
         }
 
         if (i instanceof Retourne r) {
-            typerExpression(r.getExpression());
+            TypeSimple t = typerExpression(r.getExpression());
+
+            if (retourCourant == null) {
+                retourCourant = t; // 1er return rencontré
+            } else if (retourCourant != t) {
+                throw new ErreurSemantique(msg("Types de retour incompatibles : " + retourCourant + " et " + t));
+            }
+
             return;
         }
+
 
         if (i instanceof Si s) {
             TypeSimple tCond = typerExpression(s.getCondition());
@@ -134,7 +155,8 @@ public class AnalyseSemantique {
     private TypeSimple typerExpression(Expression e) {
 
         if (e instanceof Nombre) return TypeSimple.ENTIER;
-
+        if (e instanceof Texte) return TypeSimple.TEXTE;
+        if (e instanceof Caractere) return TypeSimple.CARACTERE;
         if (e instanceof Identifiant id) {
             if ("true".equals(id.getNom()) || "false".equals(id.getNom())) {
                 return TypeSimple.BOOLEEN;

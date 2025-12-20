@@ -45,8 +45,15 @@ public class Fonction implements Noeud {
         StringBuilder ins = new StringBuilder();
 
         // Signature (tu gardes Object pour l’instant)
-        ins.append("public static Object ").append(nom).append("(");
-
+        String javaReturnType = switch (sem.typeRetourDe(nom)) {
+            case ENTIER -> "int";
+            case BOOLEEN -> "boolean";
+            case TEXTE -> "String";
+            case CARACTERE -> "char";
+            case VIDE -> "void";
+            default -> "Object";
+        };
+        ins.append("public static ").append(javaReturnType).append(" ").append(nom).append("(");
         for (int i = 0; i < param.size(); i++) {
             ins.append("Object ").append(param.get(i));
             if (i < param.size() - 1) ins.append(", ");
@@ -64,8 +71,11 @@ public class Fonction implements Noeud {
             String javaType = switch (entry.getValue()) {
                 case ENTIER -> "int";
                 case BOOLEEN -> "boolean";
+                case TEXTE -> "String";
+                case CARACTERE -> "char";
                 default -> "Object";
             };
+
 
             ins.append("  ").append(javaType).append(" ").append(varName).append(";\n");
         }

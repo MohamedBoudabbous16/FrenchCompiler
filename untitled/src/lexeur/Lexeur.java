@@ -27,6 +27,8 @@ public class Lexeur {
         MOTS_CLES.put("classe", TypeJeton.Classe);
         MOTS_CLES.put("vrai", TypeJeton.Vrai);
         MOTS_CLES.put("faux", TypeJeton.Faux);
+        MOTS_CLES.put("affiche", TypeJeton.Affiche);
+
     }
     private static final Map<String, TypeJeton> SYMBOLES = new HashMap<>();
 

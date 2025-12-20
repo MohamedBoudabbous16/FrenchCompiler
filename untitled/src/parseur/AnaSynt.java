@@ -167,6 +167,8 @@ public class AnaSynt {
             return analyserPour();
         } else if (est(TypeJeton.Retourne)) {
             return analyserRetourne();
+        } else if (est(TypeJeton.Affiche)) {
+            return analyserAffiche();
         } else if (est(TypeJeton.Identifiant)) {
             // Pour l’instant on ne gère ici que l’affectation
             return analyserAffectation();
@@ -174,6 +176,14 @@ public class AnaSynt {
             throw erreur("Instruction inattendue : " + courant().getType() +
                     " (" + courant().getValeur() + ")");
         }
+    }
+    private Instruction analyserAffiche() {
+        consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
+        consommer(TypeJeton.ParOuvr, "'(' attendu après 'affiche'");
+        Expression expr = analyserExpression();
+        consommer(TypeJeton.ParFerm, "')' attendu après l'expression de 'affiche'");
+        consommer(TypeJeton.PointVirgule, "';' attendu après affiche(...)");
+        return new parseur.ast.Affiche(expr);
     }
 
     private Instruction analyserAffectation() {
@@ -394,6 +404,21 @@ public class AnaSynt {
             return new Nombre(val);
         }
 
+        // ✅ AJOUT : texte littéral
+        if (est(TypeJeton.TexteLitteral)) {
+            avancer();
+            return new Texte(j.getValeur());
+        }
+
+        // ✅ AJOUT : caractère littéral
+        if (est(TypeJeton.CaractereLitteral)) {
+            avancer();
+            if (j.getValeur() == null || j.getValeur().length() != 1) {
+                throw erreur("CaractereLitteral invalide : '" + j.getValeur() + "'");
+            }
+            return new Caractere(j.getValeur().charAt(0));
+        }
+
         if (est(TypeJeton.Identifiant)) {
             avancer();
             return new Identifiant(j.getValeur());
@@ -421,6 +446,7 @@ public class AnaSynt {
         throw erreur("Expression primaire attendue, trouvé : " + j.getType() +
                 " (" + j.getValeur() + ")");
     }
+
 
     /* ======================
      *   GESTION DES JETONS

@@ -2,6 +2,7 @@ package parseur.ast.Test;
 
 import lexeur.Jeton;
 import lexeur.Lexeur;
+import parseur.AnaSynt;
 import parseur.ast.*;
 
 import java.io.FileWriter;
@@ -15,6 +16,8 @@ public class TestGeneration {
         // =========================
         // TEST LEXEUR (minimal)
         // =========================
+
+
         String source = """
                 fonction main() {
                   // commentaire
@@ -31,6 +34,11 @@ public class TestGeneration {
         for (Jeton j : jetons) {
             System.out.println(j.getType() + " -> '" + j.getValeur() + "' (ligne " + j.getLigne() + ", col " + j.getColonne() + ")");
         }
+        var prog = AnaSynt.analyser(source);
+        var sem  = new semantic.AnalyseSemantique();
+        sem.verifier(prog);   // ⬅️ LIGNE MANQUANTE
+        System.out.println(prog.genJava(sem));
+
 
         // =========================
         // TON TEST AST (existant)

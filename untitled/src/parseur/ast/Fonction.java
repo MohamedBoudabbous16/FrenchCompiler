@@ -41,6 +41,53 @@ public class Fonction implements Noeud {
 
         return ins.toString();
     }
+    public String genJava(semantic.AnalyseSemantique sem) {
+        StringBuilder ins = new StringBuilder();
+
+        // Signature (tu gardes Object pour l’instant)
+        ins.append("public static Object ").append(nom).append("(");
+
+        for (int i = 0; i < param.size(); i++) {
+            ins.append("Object ").append(param.get(i));
+            if (i < param.size() - 1) ins.append(", ");
+        }
+        ins.append(") {\n");
+
+        // 1) Déclarations Java des variables inférées (sauf paramètres)
+        var vars = sem.variablesDe(nom);
+        for (var entry : vars.entrySet()) {
+            String varName = entry.getKey();
+
+            // Ne pas redéclarer les paramètres
+            if (param.contains(varName)) continue;
+
+            String javaType = switch (entry.getValue()) {
+                case ENTIER -> "int";
+                case BOOLEEN -> "boolean";
+                default -> "Object";
+            };
+
+            ins.append("  ").append(javaType).append(" ").append(varName).append(";\n");
+        }
+
+        // 2) Corps (ton Bloc.genJava() retourne déjà un bloc avec { ... })
+        // On enlève les accolades externes pour éviter "{\n{...}\n}\n"
+        String corpsJava = corps.genJava().trim();
+        if (corpsJava.startsWith("{") && corpsJava.endsWith("}")) {
+            corpsJava = corpsJava.substring(1, corpsJava.length() - 1).trim();
+        }
+
+        if (!corpsJava.isEmpty()) {
+            for (String line : corpsJava.split("\n")) {
+                ins.append("  ").append(line).append("\n");
+            }
+        }
+
+        ins.append("}\n");
+        return ins.toString();
+    }
+
+
 
 
 }

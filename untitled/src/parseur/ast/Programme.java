@@ -1,5 +1,5 @@
 package parseur.ast;
-
+import semantic.AnalyseSemantique;
 import java.util.List;
 
 public class Programme implements Noeud {
@@ -24,6 +24,14 @@ public class Programme implements Noeud {
 
         return code.toString();
     }
+    public String genJava(semantic.AnalyseSemantique sem) {
+        StringBuilder code = new StringBuilder();
+        for (Classe classe : classes) {
+            code.append(classe.genJava(sem)).append("\n\n");
+        }
+        return code.toString();
+    }
+
     //une fois que le langage est stable, peut etre je vais enlever cette methode
     public void sauvegarderDansFichier(String nomFichier) {
         try (java.io.FileWriter writer = new java.io.FileWriter(nomFichier)) {

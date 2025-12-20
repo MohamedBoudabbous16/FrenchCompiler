@@ -1,10 +1,13 @@
 import parseur.AnaSynt;
 import parseur.ast.Programme;
+import semantic.AnalyseSemantique;
+import semantic.ErreurSemantique;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
 public class Main {
 
     public static void main(String[] args) {
@@ -15,7 +18,7 @@ public class Main {
                 Path inputPath = Path.of(args[0]);
                 source = Files.readString(inputPath, StandardCharsets.UTF_8);
             } else {
-                // Petit exemple par défaut (tu peux le remplacer)
+                // Exemple par défaut (à adapter)
                 source = """
                         fonction main() {
                             x = 0;
@@ -32,14 +35,18 @@ public class Main {
             // 2) Parser -> AST
             Programme programme = AnaSynt.analyser(source);
 
-            // 3) Générer le code Java
-            String javaCode = programme.genJava();
+            // 3) Analyse sémantique (NOUVEAU)
+            AnalyseSemantique sem = new AnalyseSemantique();
+            sem.verifier(programme);
 
-            // 4) Afficher le Java généré
+            // 4) Générer le code Java (seulement si sémantique OK)
+            String javaCode = programme.genJava(sem);
+
+            // 5) Afficher le Java généré
             System.out.println("===== JAVA GÉNÉRÉ =====");
             System.out.println(javaCode);
 
-            // 5) Écrire dans un fichier .java
+            // 6) Écrire dans un fichier .java
             String outputFileName = (args.length >= 2) ? args[1] : "ProgrammePrincipal.java";
             Path outputPath = Path.of(outputFileName);
 
@@ -47,12 +54,16 @@ public class Main {
 
             System.out.println("\n✅ Fichier Java généré : " + outputPath.toAbsolutePath());
 
+        } catch (ErreurSemantique e) {
+            // Erreurs sémantiques (variables non déclarées, types incompatibles, etc.)
+            System.err.println("❌ Erreur sémantique : " + e.getMessage());
+
         } catch (IOException e) {
             System.err.println("❌ Erreur E/S : " + e.getMessage());
+
         } catch (RuntimeException e) {
             // Erreurs syntaxiques (AnaSynt.erreur(...)) ou autres
             System.err.println("❌ Erreur compilation : " + e.getMessage());
         }
     }
 }
-

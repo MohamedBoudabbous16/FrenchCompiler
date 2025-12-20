@@ -5,13 +5,16 @@ import parseur.ast.controle.Pour;
 import parseur.ast.controle.Si;
 import parseur.ast.controle.TantQue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class AnalyseSemantique {
 
+    private final Map<String, Map<String, TypeSimple>> varsParFonction = new HashMap<>();
     private final TableSymboles ts = new TableSymboles();
     private String fonctionCourante = "??";
 
     public void verifier(Programme programme) {
-        // 1) vérifier toutes les classes / fonctions
         for (Classe c : programme.getClasses()) {
             for (Fonction f : c.getFonctions()) {
                 verifierFonction(f);
@@ -19,15 +22,22 @@ public class AnalyseSemantique {
         }
     }
 
+    public Map<String, TypeSimple> variablesDe(String nomFonction) {
+        return varsParFonction.getOrDefault(nomFonction, Map.of());
+    }
+
     private void verifierFonction(Fonction f) {
         fonctionCourante = f.getNom();
 
+        // Table des variables inférées de cette fonction
+        varsParFonction.put(fonctionCourante, new HashMap<>());
+
         ts.entrerPortee(); // portée de la fonction
 
-        // Paramètres : (pour l’instant, si tu n’as pas de types sur paramètres,
-        // tu peux les considérer ENTIER par défaut ou INCONNU)
+        // Paramètres : si ton langage n’a pas de types, tu peux choisir ENTIER par défaut
         for (String p : f.getParam()) {
-            ts.declarer(p, TypeSimple.ENTIER, true); // choix minimal
+            ts.declarer(p, TypeSimple.ENTIER, true);
+            varsParFonction.get(fonctionCourante).put(p, TypeSimple.ENTIER);
         }
 
         verifierBloc(f.getCorps());
@@ -36,12 +46,10 @@ public class AnalyseSemantique {
     }
 
     private void verifierBloc(Bloc bloc) {
-        ts.entrerPortee(); // scope de bloc
-
+        ts.entrerPortee(); // portée de bloc
         for (Instruction instr : bloc.getInstructions()) {
             verifierInstruction(instr);
         }
-
         ts.sortirPortee();
     }
 
@@ -53,20 +61,26 @@ public class AnalyseSemantique {
         }
 
         if (i instanceof Affectation a) {
-            Symbole s = ts.resoudre(a.getNomVar());
-            if (s == null) {
-                throw new ErreurSemantique(msg("Variable '" + a.getNomVar() + "' utilisée avant déclaration."));
-            }
             TypeSimple tExpr = typerExpression(a.getExpression());
+
+            Symbole s = ts.resoudre(a.getNomVar());
+
+            // ✅ Déclaration implicite à la 1ère affectation
+            if (s == null) {
+                ts.declarer(a.getNomVar(), tExpr, false);
+                varsParFonction.get(fonctionCourante).put(a.getNomVar(), tExpr);
+                return;
+            }
+
+            // ✅ Cohérence de type
             if (s.getType() != tExpr) {
                 throw new ErreurSemantique(msg("Affectation incompatible : " + s.getType() + " = " + tExpr));
             }
+
             return;
         }
 
         if (i instanceof Retourne r) {
-            // Si tu n’as pas encore le type de retour des fonctions,
-            // tu peux juste typer l’expression pour détecter les erreurs internes.
             typerExpression(r.getExpression());
             return;
         }
@@ -91,13 +105,12 @@ public class AnalyseSemantique {
         }
 
         if (i instanceof Pour p) {
-            // Hypothèse actuelle : variable de boucle ENTIER
-            // (idéalement : elle doit être déclarée avant, ou le 'pour' la déclare)
+            // Si tu veux un 'pour' qui déclare implicitement sa variable :
             Symbole s = ts.resoudre(p.getNomVar());
             if (s == null) {
-                throw new ErreurSemantique(msg("Variable de boucle '" + p.getNomVar() + "' doit être déclarée avant le 'pour'."));
-            }
-            if (s.getType() != TypeSimple.ENTIER) {
+                ts.declarer(p.getNomVar(), TypeSimple.ENTIER, false);
+                varsParFonction.get(fonctionCourante).put(p.getNomVar(), TypeSimple.ENTIER);
+            } else if (s.getType() != TypeSimple.ENTIER) {
                 throw new ErreurSemantique(msg("Variable de boucle '" + p.getNomVar() + "' doit être ENTIER."));
             }
 
@@ -115,37 +128,33 @@ public class AnalyseSemantique {
             return;
         }
 
-        // Si tu ajoutes Declaration plus tard :
-        // if (i instanceof Declaration d) { ... }
-
-        throw new ErreurSemantique(msg("Instruction non gérée par l'analyse sémantique : " + i.getClass().getSimpleName()));
+        throw new ErreurSemantique(msg("Instruction non gérée : " + i.getClass().getSimpleName()));
     }
 
     private TypeSimple typerExpression(Expression e) {
 
-        if (e instanceof Nombre) {
-            return TypeSimple.ENTIER;
-        }
+        if (e instanceof Nombre) return TypeSimple.ENTIER;
 
         if (e instanceof Identifiant id) {
-            // Dans ton AST actuel, tu utilises Identifiant("true") / ("false") pour bool :
             if ("true".equals(id.getNom()) || "false".equals(id.getNom())) {
                 return TypeSimple.BOOLEEN;
             }
 
             Symbole s = ts.resoudre(id.getNom());
+
+            // ❌ Lecture avant 1ère affectation
             if (s == null) {
-                throw new ErreurSemantique(msg("Identifiant '" + id.getNom() + "' utilisé avant déclaration."));
+                throw new ErreurSemantique(msg("Identifiant '" + id.getNom() + "' utilisé avant affectation."));
             }
+
             return s.getType();
         }
 
         if (e instanceof ExpressionBinaire b) {
             TypeSimple g = typerExpression(b.getGauche());
             TypeSimple d = typerExpression(b.getDroite());
-            String op = b.getOperateur();
+            String op = b.getop();
 
-            // arithmétique -> ENTIER
             if (op.equals("+") || op.equals("-") || op.equals("*") || op.equals("/") || op.equals("%")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
                     throw new ErreurSemantique(msg("Opérateur '" + op + "' attend ENTIER,ENTIER."));
@@ -153,7 +162,6 @@ public class AnalyseSemantique {
                 return TypeSimple.ENTIER;
             }
 
-            // comparaisons -> BOOLEEN
             if (op.equals("<") || op.equals("<=") || op.equals(">") || op.equals(">=")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
                     throw new ErreurSemantique(msg("Comparaison '" + op + "' attend ENTIER,ENTIER."));
@@ -161,7 +169,6 @@ public class AnalyseSemantique {
                 return TypeSimple.BOOLEEN;
             }
 
-            // égalité -> BOOLEEN (on accepte ENTIER/ENTIER ou BOOLEEN/BOOLEEN)
             if (op.equals("==") || op.equals("!=")) {
                 if (g != d) {
                     throw new ErreurSemantique(msg("Test '" + op + "' attend deux opérandes du même type."));
@@ -169,7 +176,6 @@ public class AnalyseSemantique {
                 return TypeSimple.BOOLEEN;
             }
 
-            // logique -> BOOLEEN
             if (op.equals("&&") || op.equals("||")) {
                 if (g != TypeSimple.BOOLEEN || d != TypeSimple.BOOLEEN) {
                     throw new ErreurSemantique(msg("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN."));

@@ -119,51 +119,63 @@ public final class TestTools {
          * - sinon, prend la seule méthode publique no-arg retournant String
          */
         public static String extractJavaSource(Object result) {
-            Assertions.assertNotNull(result, "Résultat null");
+            if (result == null) return null;
 
-            if (result instanceof String s) {
-                return s;
-            }
+            // 1) Si le générateur retourne directement un String
+            if (result instanceof String s) return s;
 
-            // Essayer getters standards
-            String[] preferred = {
-                    "getSource", "source",
-                    "getJavaCode", "javaCode",
-                    "getCode", "code",
-                    "getText", "text",
-                    "toString" // dernier recours (mais souvent moche)
+            Class<?> c = result.getClass();
+
+            // 2) Méthodes candidates (ton GenerationResult expose getJavaSource())
+            String[] methodNames = {
+                    "getJavaSource",
+                    "getSource",
+                    "source",
+                    "javaSource"
             };
 
-            for (String methodName : preferred) {
-                String s = tryNoArgStringMethod(result, methodName);
-                if (s != null && !s.isBlank()) {
-                    return s;
-                }
-            }
-
-            // Sinon: si une seule méthode publique no-arg retourne String, on la prend
-            List<Method> stringNoArg = new ArrayList<>();
-            for (Method m : result.getClass().getMethods()) {
-                if (!Modifier.isPublic(m.getModifiers())) continue;
-                if (m.getParameterCount() != 0) continue;
-                if (m.getReturnType() != String.class) continue;
-                stringNoArg.add(m);
-            }
-
-            if (stringNoArg.size() == 1) {
+            for (String m : methodNames) {
                 try {
-                    return (String) stringNoArg.get(0).invoke(result);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    var meth = c.getMethod(m);
+                    if (meth.getReturnType() == String.class && meth.getParameterCount() == 0) {
+                        Object v = meth.invoke(result);
+                        return (String) v;
+                    }
+                } catch (NoSuchMethodException ignored) {
+                    // on tente le suivant
+                } catch (ReflectiveOperationException e) {
+                    throw new AssertionError("Impossible d'appeler " + c.getName() + "." + m + "(): " + e, e);
                 }
             }
 
-            Assertions.fail("Impossible d'extraire le code Java depuis " + result.getClass().getName()
-                    + " (pas String et pas de getter String clair).");
-            return null; // unreachable
+            // 3) Champs candidats (ton GenerationResult a un champ 'javaSource')
+            String[] fieldNames = {
+                    "javaSource",
+                    "source"
+            };
+
+            for (String f : fieldNames) {
+                try {
+                    var field = c.getDeclaredField(f);
+                    field.setAccessible(true);
+                    Object v = field.get(result);
+                    if (v instanceof String s) return s;
+                } catch (NoSuchFieldException ignored) {
+                    // on tente le suivant
+                } catch (ReflectiveOperationException e) {
+                    throw new AssertionError("Impossible de lire le champ " + c.getName() + "." + f + ": " + e, e);
+                }
+            }
+
+            // 4) Si on arrive ici, on n'a pas trouvé
+            throw new AssertionError(
+                    "extractJavaSource: type de retour non supporté: " + c.getName() +
+                            " (méthode getJavaSource()/champ javaSource introuvables). " +
+                            "Valeur: " + result
+            );
         }
 
-        private static String tryNoArgStringMethod(Object obj, String methodName) {
+    private static String tryNoArgStringMethod(Object obj, String methodName) {
             try {
                 Method m = obj.getClass().getMethod(methodName);
                 if (m.getReturnType() != String.class) return null;

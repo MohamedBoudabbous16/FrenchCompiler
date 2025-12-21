@@ -1,7 +1,8 @@
-package test.java.tests;
+package test.java.tests.OptimzerCodeGenerator;
 
 import main.java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
+import test.java.tests.TestTools;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,6 +29,7 @@ public class CodeGeneratorTests {
     void codegenerator_genere_scanner_pour_lire() {
         Object programme = TestTools.parseProgramme(SRC_LIRE);
 
+        // (Optionnel) Sémantique : tu peux garder si ton generate() l'utilise déjà
         AnalyseSemantique sem = new AnalyseSemantique();
         sem.verifier((main.java.parseur.ast.Programme) programme);
 
@@ -40,11 +42,15 @@ public class CodeGeneratorTests {
             result = TestTools.invokeBestPublicMethod(gen, programme);
         }
 
+        // ✅ IMPORTANT : GenerationResult expose getJavaSource() (pas getSource()).
+        // TestTools.extractJavaSource(result) doit appeler getJavaSource() si présent.
         String javaCode = TestTools.extractJavaSource(result);
-        assertNotNull(javaCode);
+        assertNotNull(javaCode, "javaCode ne doit pas être null");
 
-        assertTrue(javaCode.contains("Scanner") || javaCode.contains("java.util.Scanner"),
-                "Le code généré devrait inclure Scanner pour lire()");
+        assertTrue(
+                javaCode.contains("import java.util.Scanner") || javaCode.contains("java.util.Scanner") || javaCode.contains("Scanner"),
+                "Le code généré devrait inclure Scanner pour lire()\n\n" + javaCode
+        );
 
         TestTools.assertCompiles("ProgrammePrincipal", javaCode);
     }
@@ -66,11 +72,25 @@ public class CodeGeneratorTests {
         }
 
         String javaCode = TestTools.extractJavaSource(result);
-        assertNotNull(javaCode);
+        assertNotNull(javaCode, "javaCode ne doit pas être null");
 
-        int countPrint = javaCode.split("System\\.out\\.print\\(").length - 1;
-        assertTrue(countPrint >= 2, "affiche multi-args doit générer plusieurs System.out.print(...)");
+        // ✅ Multi-args => au moins 4 prints attendus pour ("x=", x, " y=", y)
+        int countPrint = countOccurrences(javaCode, "System.out.print(");
+        assertTrue(
+                countPrint >= 4,
+                "affiche multi-args doit générer plusieurs System.out.print(...). Trouvé=" + countPrint + "\n\n" + javaCode
+        );
 
         TestTools.assertCompiles("ProgrammePrincipal", javaCode);
+    }
+
+    private static int countOccurrences(String haystack, String needle) {
+        int c = 0, idx = 0;
+        while (true) {
+            idx = haystack.indexOf(needle, idx);
+            if (idx < 0) return c;
+            c++;
+            idx += needle.length();
+        }
     }
 }

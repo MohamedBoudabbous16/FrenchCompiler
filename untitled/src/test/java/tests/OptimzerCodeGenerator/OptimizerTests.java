@@ -1,6 +1,7 @@
-package test.java.tests;
+package test.java.tests.OptimzerCodeGenerator;
 import main.java.optimizer.Optimizer;
 import org.junit.jupiter.api.Test;
+import test.java.tests.TestTools;
 
 import static org.junit.jupiter.api.Assertions.*;
 

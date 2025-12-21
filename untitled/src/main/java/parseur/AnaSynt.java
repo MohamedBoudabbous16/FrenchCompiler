@@ -168,8 +168,12 @@ public class AnaSynt {
         } else if (est(TypeJeton.Retourne)) {
             return analyserRetourne();
         } else if (est(TypeJeton.Affiche)) {
-            return analyserAffiche();
-        } else if (est(TypeJeton.Identifiant)) {
+            consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
+            return analyserAffiche(true);
+        }else if (est(TypeJeton.AfficheSansRetourLigne)) {
+            consommer(TypeJeton.AfficheSansRetourLigne, "Mot-clé 'afficheSansRetourLigne' attendu");
+            return analyserAffiche(false);}
+        else if (est(TypeJeton.Identifiant)) {
 
             // ✅ CAS 1 : appel de fonction comme instruction -> f(...);
             if (prochainType() == TypeJeton.ParOuvr) {
@@ -192,14 +196,20 @@ public class AnaSynt {
         }
     }
 
-    private Instruction analyserAffiche() {
-        consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
+    private Instruction analyserAffiche(boolean newline) {
+        // consommer le mot-clé (affiche ou afficheSansRetourLigne) avant d’arriver ici
         consommer(TypeJeton.ParOuvr, "'(' attendu après 'affiche'");
-        Expression expr = analyserExpression();
-        consommer(TypeJeton.ParFerm, "')' attendu après l'expression de 'affiche'");
+        List<Expression> args = new ArrayList<>();
+        if (!est(TypeJeton.ParFerm)) {
+            do {
+                args.add(analyserExpression());
+            } while (consommerOptionnel(TypeJeton.Virgule));
+        }
+        consommer(TypeJeton.ParFerm, "')' attendu après les arguments");
         consommer(TypeJeton.PointVirgule, "';' attendu après affiche(...)");
-        return new main.java.parseur.ast.Affiche(expr);
+        return new Affiche(args, newline);
     }
+
 
     private Instruction analyserAffectation() {
         Jeton ident = consommer(TypeJeton.Identifiant, "Nom de variable attendu");
@@ -418,6 +428,14 @@ public class AnaSynt {
             int val = Integer.parseInt(j.getValeur());
             return new Nombre(val);
         }
+
+        if (est(TypeJeton.Lire)) {
+            consommer(TypeJeton.Lire, "Mot-clé 'lire' attendu");
+            consommer(TypeJeton.ParOuvr, "'(' attendu après 'lire'");
+            consommer(TypeJeton.ParFerm, "')' attendu après 'lire'");
+            return new Lire();
+        }
+
 
         // ✅ AJOUT : texte littéral
         if (est(TypeJeton.TexteLitteral)) {

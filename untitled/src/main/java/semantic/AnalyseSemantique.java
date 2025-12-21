@@ -105,13 +105,16 @@ public class AnalyseSemantique {
             verifierBloc(b);
             return;
         }
-        if (i instanceof main.java.parseur.ast.Affiche a) {
-            TypeSimple t = typerExpression(a.getExpression());
-            if (t == TypeSimple.VIDE) {
-                throw new ErreurSemantique(msg("Impossible d'afficher une expression de type VIDE"));
+        if (i instanceof Affiche a) {
+            for (Expression expr : a.getExpressions()) {
+                TypeSimple t = typerExpression(expr);
+                if (t == TypeSimple.VIDE) {
+                    throw new ErreurSemantique(msg("Impossible d'afficher une expression de type VIDE"));
+                }
             }
             return;
         }
+
         if (i instanceof AppelFonctionInstr afi) {
             // Vérifie l’appel, mais ignore sa valeur de retour
             typerExpression(afi.getAppel());
@@ -200,6 +203,10 @@ public class AnalyseSemantique {
         if (e instanceof Nombre)    return TypeSimple.ENTIER;
         if (e instanceof Texte)     return TypeSimple.TEXTE;
         if (e instanceof Caractere) return TypeSimple.CARACTERE;
+        if (e instanceof Lire) {
+            return TypeSimple.ENTIER; // ou TEXTE si vous préférez lire des chaînes
+        }
+
 
         if (e instanceof Identifiant id) {
             // Constantes booléennes

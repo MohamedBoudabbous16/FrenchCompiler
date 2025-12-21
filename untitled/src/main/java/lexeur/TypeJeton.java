@@ -19,7 +19,7 @@ public enum TypeJeton {
 
     Identifiant, Nombre, TexteLitteral, CaractereLitteral, Vrai, Faux, // ici les valeurs et noms
     Affiche,
-
-
+    AfficheSansRetourLigne,
+    Lire,
     FinFichier // ici pour savoir qu'on est à la fin du code
 }

@@ -1,3 +1,5 @@
+package test.java.tests;
+
 import main.java.parseur.AnaSynt;
 import main.java.parseur.ast.Programme;
 import main.java.semantic.AnalyseSemantique;
@@ -144,11 +146,11 @@ public class Main {
                 System.out.println(
                         "Aucun fichier fourni -> utilisation d'un exemple interne.\n" +
                                 "Usage:\n" +
-                                "  java Main fichier.txt\n" +
-                                "  java Main --test-affiche\n" +
-                                "  java Main --test-affiche-vide\n" +
-                                "  java Main --test-concat-ok\n" +
-                                "  java Main --test-concat-ko\n"
+                                "  java test.java.tests.Main fichier.txt\n" +
+                                "  java test.java.tests.Main --test-affiche\n" +
+                                "  java test.java.tests.Main --test-affiche-vide\n" +
+                                "  java test.java.tests.Main --test-concat-ok\n" +
+                                "  java test.java.tests.Main --test-concat-ko\n"
                 );
             }
 

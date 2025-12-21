@@ -66,7 +66,7 @@ public class TestGeneration {
                 List.of(somme)
         );
 
-        String codeJava = calcul.genJava();
+        String codeJava = calcul.genJava(sem);
 
         // === Écriture dans un fichier Calcul.java ===
         try (FileWriter writer = new FileWriter("Calcul.java")) {

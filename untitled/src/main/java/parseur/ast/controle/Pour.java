@@ -64,15 +64,15 @@ public class Pour extends Instruction {
     }
 
 
-    private String miseAJourJava() {
-        return nomVar + " " + operateur + " " + pas.genJava();
+    private String miseAJourJava(AnalyseSemantique sem) {
+        return nomVar + " " + operateur + " " + pas.genJava(sem);
     }
 
     @Override
     public String genJava(AnalyseSemantique sem) {
         return "for (int " + nomVar + " = " + debut.genJava(sem) + "; " +
                 conditionJava(sem) + "; " +
-                miseAJourJava() + ") " +
+                miseAJourJava(sem) + ") " +
                 corps.genJava(sem);
     }
 

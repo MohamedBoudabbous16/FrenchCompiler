@@ -1,4 +1,5 @@
 package test.java.tests;
+
 import main.java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
 
@@ -6,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CodeGeneratorTests {
 
-    // ✅ Ton parseur attend "fonction" directement
     private static final String SRC_LIRE = """
         fonction main() {
           x = lire();
@@ -33,13 +33,14 @@ public class CodeGeneratorTests {
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
 
-        String javaCode;
+        Object result;
         try {
-            javaCode = (String) TestTools.invokeBestMethodReturningString(gen, programme, sem);
+            result = TestTools.invokeBestPublicMethod(gen, programme, sem);
         } catch (AssertionError e) {
-            javaCode = (String) TestTools.invokeBestMethodReturningString(gen, programme);
+            result = TestTools.invokeBestPublicMethod(gen, programme);
         }
 
+        String javaCode = TestTools.extractJavaSource(result);
         assertNotNull(javaCode);
 
         assertTrue(javaCode.contains("Scanner") || javaCode.contains("java.util.Scanner"),
@@ -57,13 +58,14 @@ public class CodeGeneratorTests {
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
 
-        String javaCode;
+        Object result;
         try {
-            javaCode = (String) TestTools.invokeBestMethodReturningString(gen, programme, sem);
+            result = TestTools.invokeBestPublicMethod(gen, programme, sem);
         } catch (AssertionError e) {
-            javaCode = (String) TestTools.invokeBestMethodReturningString(gen, programme);
+            result = TestTools.invokeBestPublicMethod(gen, programme);
         }
 
+        String javaCode = TestTools.extractJavaSource(result);
         assertNotNull(javaCode);
 
         int countPrint = javaCode.split("System\\.out\\.print\\(").length - 1;

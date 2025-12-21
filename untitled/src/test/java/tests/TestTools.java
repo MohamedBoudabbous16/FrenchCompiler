@@ -10,6 +10,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
+
+import org.junit.jupiter.api.Assertions;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
+
 /**
  * Outils robustes par réflexion (parser + generator) + compilation Java.
  */
@@ -26,6 +34,157 @@ public final class TestTools {
             return null;
         }
     }
+
+
+        /**
+         * Invoque "la meilleure" méthode publique dont les paramètres matchent args,
+         * peu importe le type de retour.
+         * Stratégie :
+         * - prend les méthodes publiques
+         * - filtre celles dont nb params == args.length et types assignables
+         * - préfère une méthode nommée generate / gen / compile si dispo
+         * - sinon prend la première candidate
+         */
+        public static Object invokeBestPublicMethod(Object target, Object... args) {
+            Objects.requireNonNull(target, "target");
+
+            Method best = findBestPublicMethod(target.getClass(), args);
+            Assertions.assertNotNull(best,
+                    "Aucune méthode publique compatible args=" + Arrays.toString(args)
+                            + " dans " + target.getClass().getName());
+
+            try {
+                best.setAccessible(true);
+                return best.invoke(target, args);
+            } catch (Exception e) {
+                throw new RuntimeException("Erreur invocation " + best.getName() + " : " + e.getMessage(), e);
+            }
+        }
+
+        private static Method findBestPublicMethod(Class<?> clazz, Object[] args) {
+            List<Method> candidates = new ArrayList<>();
+            for (Method m : clazz.getMethods()) { // public incl. héritées
+                if (!Modifier.isPublic(m.getModifiers())) continue;
+                if (m.getParameterCount() != args.length) continue;
+                if (!paramsMatch(m.getParameterTypes(), args)) continue;
+                candidates.add(m);
+            }
+            if (candidates.isEmpty()) return null;
+
+            // Score : préférer des noms attendus
+            candidates.sort(Comparator.comparingInt((Method m) -> scoreMethodName(m.getName())).reversed());
+            return candidates.get(0);
+        }
+
+        private static boolean paramsMatch(Class<?>[] paramTypes, Object[] args) {
+            for (int i = 0; i < paramTypes.length; i++) {
+                Object a = args[i];
+                if (a == null) return false;
+                Class<?> argType = a.getClass();
+
+                // gérer primitives vs wrappers
+                Class<?> p = wrapPrimitive(paramTypes[i]);
+                if (!p.isAssignableFrom(argType)) return false;
+            }
+            return true;
+        }
+
+        private static int scoreMethodName(String name) {
+            String n = name.toLowerCase(Locale.ROOT);
+            if (n.equals("generate")) return 100;
+            if (n.equals("genjava")) return 95;
+            if (n.equals("compile")) return 90;
+            if (n.startsWith("generate")) return 80;
+            if (n.startsWith("gen")) return 70;
+            return 10;
+        }
+
+        private static Class<?> wrapPrimitive(Class<?> c) {
+            if (!c.isPrimitive()) return c;
+            if (c == int.class) return Integer.class;
+            if (c == boolean.class) return Boolean.class;
+            if (c == long.class) return Long.class;
+            if (c == double.class) return Double.class;
+            if (c == float.class) return Float.class;
+            if (c == char.class) return Character.class;
+            if (c == byte.class) return Byte.class;
+            if (c == short.class) return Short.class;
+            return c;
+        }
+
+        /**
+         * Extrait un code Java (String) depuis un résultat de génération.
+         * - si result est String => retourne tel quel
+         * - sinon, tente getSource(), source(), getJavaCode(), getCode()...
+         * - sinon, prend la seule méthode publique no-arg retournant String
+         */
+        public static String extractJavaSource(Object result) {
+            Assertions.assertNotNull(result, "Résultat null");
+
+            if (result instanceof String s) {
+                return s;
+            }
+
+            // Essayer getters standards
+            String[] preferred = {
+                    "getSource", "source",
+                    "getJavaCode", "javaCode",
+                    "getCode", "code",
+                    "getText", "text",
+                    "toString" // dernier recours (mais souvent moche)
+            };
+
+            for (String methodName : preferred) {
+                String s = tryNoArgStringMethod(result, methodName);
+                if (s != null && !s.isBlank()) {
+                    return s;
+                }
+            }
+
+            // Sinon: si une seule méthode publique no-arg retourne String, on la prend
+            List<Method> stringNoArg = new ArrayList<>();
+            for (Method m : result.getClass().getMethods()) {
+                if (!Modifier.isPublic(m.getModifiers())) continue;
+                if (m.getParameterCount() != 0) continue;
+                if (m.getReturnType() != String.class) continue;
+                stringNoArg.add(m);
+            }
+
+            if (stringNoArg.size() == 1) {
+                try {
+                    return (String) stringNoArg.get(0).invoke(result);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            Assertions.fail("Impossible d'extraire le code Java depuis " + result.getClass().getName()
+                    + " (pas String et pas de getter String clair).");
+            return null; // unreachable
+        }
+
+        private static String tryNoArgStringMethod(Object obj, String methodName) {
+            try {
+                Method m = obj.getClass().getMethod(methodName);
+                if (m.getReturnType() != String.class) return null;
+                return (String) m.invoke(obj);
+            } catch (NoSuchMethodException e) {
+                return null;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
 
     public static Object newInstance(Class<?> cls, Object... args) {
         try {

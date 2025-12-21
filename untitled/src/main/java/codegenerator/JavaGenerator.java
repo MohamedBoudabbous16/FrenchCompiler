@@ -38,21 +38,22 @@ public class JavaGenerator {
     // 2) Génération via ton AST existant
     String source = programme.genJava(sem);
 
-    // 3) Runtime (Scanner / lire()) si besoin
-    boolean needsLireRuntime = options.isForceLireRuntime()
-            || RuntimeSupport.sourceUsesLire(source);
+        // 3) Runtime (Scanner / lire()) si besoin
+        boolean needsLireRuntime = options.isForceLireRuntime()
+                || RuntimeSupport.programmeUsesLire(programme);
 
-    if (needsLireRuntime) {
-        String runtimeChunk = RuntimeSupport.lireIntRuntimeChunk(
-                options.getScannerFieldName(),
-                options.getScannerInitExpr(),
-                options.getLireMethodName()
-        );
-        source = SourcePatcher.injectBeforeLastBrace(source, runtimeChunk);
-        source = ImportManager.ensureImport(source, "java.util.Scanner");
-    }
+        if (needsLireRuntime) {
+            String runtimeChunk = RuntimeSupport.lireIntRuntimeChunk(
+                    options.getScannerFieldName(),
+                    options.getScannerInitExpr(),
+                    options.getLireMethodName()
+            );
+            source = SourcePatcher.injectBeforeLastBrace(source, runtimeChunk);
+            source = ImportManager.ensureImport(source, "java.util.Scanner");
+        }
 
-    // 4) (Optionnel) packager + nom de classe (si tu veux plus tard)
+
+        // 4) (Optionnel) packager + nom de classe (si tu veux plus tard)
     // Ici on laisse ton Programme.genJava gérer le nom de classe.
 
     return new GenerationResult(source, sem);
@@ -63,6 +64,6 @@ public class JavaGenerator {
     sem.verifier(programme);
     return sem;
     }
-    }
+}
 
 

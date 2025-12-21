@@ -21,26 +21,26 @@ public class Fonction implements Noeud {
     public Bloc getCorps() {
         return corps;
     }
-    @Override
-    public String genJava() {
-        StringBuilder ins = new StringBuilder();
-        ins.append("public static Object ").append(nom).append("("); // <--- espace ajouté ici
-
-        // Signature des paramètres
-        for (int i = 0; i < param.size(); i++) {
-            ins.append("Object ").append(param.get(i));
-            if (i < param.size() - 1) {
-                ins.append(", ");
-            }
-        }
-
-        ins.append(")");
-
-        // Corps de la fonction
-        ins.append(corps.genJava());
-
-        return ins.toString();
-    }
+//    @Override
+//    public String genJava() {
+//        StringBuilder ins = new StringBuilder();
+//        ins.append("public static Object ").append(nom).append("("); // <--- espace ajouté ici
+//
+//        // Signature des paramètres
+//        for (int i = 0; i < param.size(); i++) {
+//            ins.append("Object ").append(param.get(i));
+//            if (i < param.size() - 1) {
+//                ins.append(", ");
+//            }
+//        }
+//
+//        ins.append(")");
+//
+//        // Corps de la fonction
+//        ins.append(corps.genJava());
+//
+//        return ins.toString();
+//    }
     public String genJava(semantic.AnalyseSemantique sem) {
         StringBuilder ins = new StringBuilder();
 
@@ -82,7 +82,7 @@ public class Fonction implements Noeud {
 
         // 2) Corps (ton Bloc.genJava() retourne déjà un bloc avec { ... })
         // On enlève les accolades externes pour éviter "{\n{...}\n}\n"
-        String corpsJava = corps.genJava().trim();
+        String corpsJava = corps.genJava(sem).trim();
         if (corpsJava.startsWith("{") && corpsJava.endsWith("}")) {
             corpsJava = corpsJava.substring(1, corpsJava.length() - 1).trim();
         }

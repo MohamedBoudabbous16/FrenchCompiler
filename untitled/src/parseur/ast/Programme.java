@@ -22,9 +22,9 @@ public class Programme implements Noeud {
         return code.toString();
     }
     //une fois que le langage est stable, peut etre je vais enlever cette methode
-    public void sauvegarderDansFichier(String nomFichier) {
+    public void sauvegarderDansFichier(String nomFichier, AnalyseSemantique sem) {
         try (java.io.FileWriter writer = new java.io.FileWriter(nomFichier)) {
-            writer.write(this.genJava());
+            writer.write(this.genJava(sem));
             System.out.println("Le programme a été écrit dans " + nomFichier);
         } catch (java.io.IOException e) {
             System.err.println("Erreur lors de la sauvegarde : " + e.getMessage());

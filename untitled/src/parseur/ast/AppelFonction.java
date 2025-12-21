@@ -29,7 +29,7 @@ public class AppelFonction extends Expression {
 
         for (int i = 0; i < args.size(); i++) {
             if (i > 0) sb.append(", ");
-            sb.append(args.get(i).genJava(sem)); // ✅ PASSER sem
+            sb.append(args.get(i).genJava(sem));
         }
 
         sb.append(")");

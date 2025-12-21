@@ -1,19 +1,23 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
 import semantic.TypeSimple;
-
 import java.util.List;
 
-public class Classe implements Noeud{
-
-    private String nom;
+/**
+ * Représente une classe générée par le compilateur.
+ * Elle contient uniquement des fonctions et produit la classe Java correspondante.
+ */
+public class Classe implements Noeud {
+    private final String nom;
     private final List<String> meres;
     private final List<String> prives;
     private final List<String> publics;
     private final List<String> finaux;
     private final List<Fonction> fonctions;
 
-    public Classe(String nom, List<String> meres, List<String> prives, List<String> publics, List<String> finaux,List<Fonction> fonctions) {
+    public Classe(String nom, List<String> meres, List<String> prives,
+                  List<String> publics, List<String> finaux, List<Fonction> fonctions) {
         this.nom = nom;
         this.meres = meres;
         this.prives = prives;
@@ -21,85 +25,22 @@ public class Classe implements Noeud{
         this.finaux = finaux;
         this.fonctions = fonctions;
     }
-    public List<String> getMeres() {
-        return meres;
-    }
-
 
     public String getNom() {
         return nom;
     }
+    public List<String> getMeres()  { return meres;  }
+    public List<String> getPrives() { return prives; }
+    public List<String> getPublics(){ return publics;}
+    public List<String> getFinaux() { return finaux; }
+    public List<Fonction> getFonctions() { return fonctions; }
 
-    public List<String> getPrives() {
-        return prives;
-    }
-
-    public List<String> getPublics() {
-        return publics;
-    }
-
-    public List<String> getFinaux() {
-        return finaux;
-    }
-
-    public List<Fonction> getFonctions() {
-        return fonctions;
-    }
-//    @Override
-//    public String genJava() {
-//        StringBuilder cls = new StringBuilder();
-//        cls.append("public class ").append(nom);
-//
-//        if (!meres.isEmpty()) {
-//            String classePrincipale = meres.getFirst();
-//            List<String> interfaces = meres.subList(1, meres.size());
-//
-//            cls.append(" extends ").append(classePrincipale);
-//            if (!interfaces.isEmpty()) {
-//                cls.append(" implements ").append(String.join(", ", interfaces));
-//            }
-//        }
-//
-//        cls.append(" {\n\n"); // <-- C'était manquant !
-//
-//        if (!finaux.isEmpty()) {
-//            cls.append("  // Variables finales\n");
-//            for (String var : finaux) {
-//                cls.append("  public static final Object ").append(var).append(" = null;\n");
-//            }
-//            cls.append("\n");
-//        }
-//
-//        if (!publics.isEmpty()) {
-//            cls.append("  // Variables publiques\n");
-//            for (String var : publics) {
-//                cls.append("  public Object ").append(var).append(";\n");
-//            }
-//            cls.append("\n");
-//        }
-//
-//        if (!prives.isEmpty()) {
-//            cls.append("  // Variables privées\n");
-//            for (String var : prives) {
-//                cls.append("  private Object ").append(var).append(";\n");
-//            }
-//            cls.append("\n");
-//        }
-//
-//        if (!fonctions.isEmpty()) {
-//            cls.append("  // Méthodes\n");
-//            for (Fonction f : fonctions) {
-//                cls.append("  ").append(f.genJava().replaceAll("\n", "\n  ")).append("\n\n");
-//            }
-//        }
-//
-//        cls.append("}\n");
-//        return cls.toString();
-//    }
-    public String genJava(semantic.AnalyseSemantique sem) {
+    @Override
+    public String genJava(AnalyseSemantique sem) {
         StringBuilder cls = new StringBuilder();
         cls.append("public class ").append(nom).append(" {\n\n");
 
+        // Déterminer s'il existe une fonction main() dans cette classe
         boolean aUneFonctionMain = false;
         for (Fonction f : fonctions) {
             if ("main".equals(f.getNom())) {
@@ -108,22 +49,22 @@ public class Classe implements Noeud{
             }
         }
 
-        // Wrapper Java exécutable
+        // Générer la méthode main Java seulement si une fonction main() existe
         if (aUneFonctionMain) {
             cls.append("  public static void main(String[] args) {\n");
             TypeSimple typeMain = sem.typeRetourDe("main");
             if (typeMain == TypeSimple.VIDE) {
-                // Si main() est void, on l'appelle simplement
+                // Si main() est void, on l’appelle sans rien afficher
                 cls.append("    main();\n");
             } else {
-                // Sinon on récupère la valeur et on l'affiche
+                // Sinon, on récupère la valeur et on l’affiche
                 cls.append("    Object res = main();\n");
                 cls.append("    System.out.println(res);\n");
             }
             cls.append("  }\n\n");
         }
 
-
+        // Générer toutes les fonctions de la classe
         if (!fonctions.isEmpty()) {
             cls.append("  // Méthodes\n");
             for (Fonction f : fonctions) {
@@ -134,5 +75,4 @@ public class Classe implements Noeud{
         cls.append("}\n");
         return cls.toString();
     }
-
 }

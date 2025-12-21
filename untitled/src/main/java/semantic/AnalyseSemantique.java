@@ -41,12 +41,17 @@ public class AnalyseSemantique {
 
     /** Analyse toutes les classes et fonctions du programme. */
     public void verifier(Programme programme) {
+        // Fonction prédéfinie lire() : arité 0, retourne un ENTIER
+        if (!signatures.containsKey("lire")) {
+            signatures.put("lire", new SignatureFonction(0, TypeSimple.ENTIER));
+        }
         for (Classe c : programme.getClasses()) {
             for (Fonction f : c.getFonctions()) {
                 verifierFonction(f);
             }
         }
     }
+
 
     /** Retourne le type de retour de la fonction, ou INCONNU si elle n'existe pas. */
     public TypeSimple typeRetourDe(String nomFonction) {
@@ -314,4 +319,5 @@ public class AnalyseSemantique {
         }
         return sig.arite;
     }
+
 }

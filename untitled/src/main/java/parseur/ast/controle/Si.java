@@ -1,5 +1,7 @@
 package main.java.parseur.ast.controle;
 import main.java.parseur.ast.*;
+import main.java.semantic.AnalyseSemantique;
+
 public class Si extends Instruction {
 
     private final Expression condition;
@@ -25,15 +27,15 @@ public class Si extends Instruction {
     }
 
     @Override
-    public String genJava() {
+    public String genJava(AnalyseSemantique sem) {
         StringBuilder sb = new StringBuilder();
-        sb.append("if (").append(condition.genJava()).append(") {\n");
-        sb.append("  ").append(alorsInstr.genJava()).append("\n");
+        sb.append("if (").append(condition.genJava(sem)).append(") {\n");
+        sb.append("  ").append(alorsInstr.genJava(sem)).append("\n");
         sb.append("}");
 
         if (sinonInstr != null) {
             sb.append(" else {\n");
-            sb.append("  ").append(sinonInstr.genJava()).append("\n");
+            sb.append("  ").append(sinonInstr.genJava(sem)).append("\n");
             sb.append("}");
         }
 

@@ -1,6 +1,7 @@
 package main.java.parseur.ast.controle;
 
 import main.java.parseur.ast.*;
+import main.java.semantic.AnalyseSemantique;
 
 /**
  * pour i = [0; 10], +=1	Incrémentation (i croît)
@@ -51,8 +52,8 @@ public class Pour extends Instruction {
         return corps;
     }
 
-    private String conditionJava() {
-        String finStr = fin.genJava();
+    private String conditionJava(AnalyseSemantique sem) {
+        String finStr = fin.genJava(sem);
         return switch (operateur) {
             case "+=" -> nomVar + " <= " + finStr;
             case "-=" -> nomVar + " >= " + finStr;
@@ -68,11 +69,11 @@ public class Pour extends Instruction {
     }
 
     @Override
-    public String genJava() {
-        return "for (int " + nomVar + " = " + debut.genJava() + "; " +
-                conditionJava() + "; " +
+    public String genJava(AnalyseSemantique sem) {
+        return "for (int " + nomVar + " = " + debut.genJava(sem) + "; " +
+                conditionJava(sem) + "; " +
                 miseAJourJava() + ") " +
-                corps.genJava();
+                corps.genJava(sem);
     }
 
 }

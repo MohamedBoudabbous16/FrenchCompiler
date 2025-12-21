@@ -1,6 +1,7 @@
 package main.java.parseur.ast.controle;
 
 import main.java.parseur.ast.*;
+import main.java.semantic.AnalyseSemantique;
 
 public class TantQue extends Instruction {
 
@@ -21,12 +22,12 @@ public class TantQue extends Instruction {
     }
 
     @Override
-    public String genJava() {
+    public String genJava(AnalyseSemantique sem) {
         StringBuilder sb = new StringBuilder();
         sb.append("while (")
-                .append(condition.genJava())
+                .append(condition.genJava(sem))
                 .append(") ")
-                .append(corps.genJava());
+                .append(corps.genJava(sem));
 
         return sb.toString();
     }

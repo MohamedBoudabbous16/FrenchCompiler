@@ -1,62 +1,55 @@
 package main.java.ir;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.List;
 
-/**
- * Outils d'analyse rapide de l'IR (ex: détecter si lire() est utilisé).
- * Ça permet de décider d'injecter le runtime Scanner.
- */
 public final class IrInspecteur {
-
     private IrInspecteur() {}
 
     public static boolean utiliseLire(IrProgramme p) {
         if (p == null) return false;
+        for (IrFonction f : p.fonctions()) {
+            if (utiliseLire(f.corps())) return true;
+        }
+        return false;
+    }
 
-        Deque<IrNoeud> pile = new ArrayDeque<>();
-        pile.push(p);
+    private static boolean utiliseLire(IrInstruction i) {
+        if (i == null) return false;
 
-        while (!pile.isEmpty()) {
-            IrNoeud n = pile.pop();
-
-            if (n instanceof IrProgramme prog) {
-                for (IrFonction f : prog.fonctions()) pile.push(f);
-            } else if (n instanceof IrFonction f) {
-                pile.push(f.corps());
-            } else if (n instanceof IrBloc b) {
-                for (IrInstruction i : b.instructions()) pile.push(i);
-            } else if (n instanceof IrAffectation a) {
-                pile.push(a.expression());
-            } else if (n instanceof IrRetourne r) {
-                if (r.expression() != null) pile.push(r.expression());
-            } else if (n instanceof IrAffiche af) {
-                for (IrExpression e : af.args()) pile.push(e);
-            } else if (n instanceof IrExpressionInstr ei) {
-                pile.push(ei.expression());
-            } else if (n instanceof IrSi s) {
-                pile.push(s.condition());
-                pile.push(s.alorsInstr());
-                if (s.sinonInstr() != null) pile.push(s.sinonInstr());
-            } else if (n instanceof IrTantQue t) {
-                pile.push(t.condition());
-                pile.push(t.corps());
-            } else if (n instanceof IrPour pour) {
-                pile.push(pour.debut());
-                pile.push(pour.fin());
-                pile.push(pour.pas());
-                pile.push(pour.corps());
-            } else if (n instanceof IrLire) {
-                return true;
-            } else if (n instanceof IrBinaire b) {
-                pile.push(b.gauche());
-                pile.push(b.droite());
-            } else if (n instanceof IrAppel a) {
-                for (IrExpression e : a.args()) pile.push(e);
-            }
-            // Les littéraux / variables -> rien à pousser
+        if (i instanceof IrBloc b) {
+            for (IrInstruction x : b.instructions()) if (utiliseLire(x)) return true;
+            return false;
         }
 
+        if (i instanceof IrAffectation a) return utiliseLire(a.expression());
+        if (i instanceof IrRetourne r) return r.expression() != null && utiliseLire(r.expression());
+        if (i instanceof IrAffiche a) {
+            for (IrExpression e : a.args()) if (utiliseLire(e)) return true;
+            return false;
+        }
+        if (i instanceof IrExpressionInstr e) return utiliseLire(e.expression());
+        if (i instanceof IrSi s) {
+            return utiliseLire(s.condition())
+                    || utiliseLire(s.alorsInstr())
+                    || (s.sinonInstr() != null && utiliseLire(s.sinonInstr()));
+        }
+        if (i instanceof IrTantQue t) return utiliseLire(t.condition()) || utiliseLire(t.corps());
+        if (i instanceof IrPour p) {
+            return utiliseLire(p.debut()) || utiliseLire(p.fin()) || utiliseLire(p.pas()) || utiliseLire(p.corps());
+        }
+
+        return false;
+    }
+
+    private static boolean utiliseLire(IrExpression e) {
+        if (e == null) return false;
+        if (e == IrLire.INSTANCE) return true;
+
+        if (e instanceof IrBinaire b) return utiliseLire(b.gauche()) || utiliseLire(b.droite());
+        if (e instanceof IrAppel a) {
+            for (IrExpression x : a.args()) if (utiliseLire(x)) return true;
+            return false;
+        }
         return false;
     }
 }

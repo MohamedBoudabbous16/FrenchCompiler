@@ -9,4 +9,6 @@ public record IrAppel(String nomFonction, List<IrExpression> args) implements Ir
         Objects.requireNonNull(nomFonction, "nomFonction");
         Objects.requireNonNull(args, "args");
     }
+    public String nom() { return nomFonction; }
+    public List<IrExpression> arguments() { return args; }
 }

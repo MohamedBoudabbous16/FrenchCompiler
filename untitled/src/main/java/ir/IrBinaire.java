@@ -9,4 +9,5 @@ public record IrBinaire(IrExpression gauche, String operateur, IrExpression droi
         Objects.requireNonNull(operateur, "operateur");
         Objects.requireNonNull(droite, "droite");
     }
+    public String op() { return operateur; }
 }

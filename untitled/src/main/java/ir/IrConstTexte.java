@@ -6,4 +6,5 @@ public record IrConstTexte(String valeur) implements IrExpression {
     public IrConstTexte {
         Objects.requireNonNull(valeur, "valeur");
     }
+    public String value() { return valeur; }
 }

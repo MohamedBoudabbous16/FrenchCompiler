@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.TypeSimple;
+
 import java.util.List;
 
 public class Classe implements Noeud{
@@ -109,10 +111,18 @@ public class Classe implements Noeud{
         // Wrapper Java exécutable
         if (aUneFonctionMain) {
             cls.append("  public static void main(String[] args) {\n");
-            cls.append("    Object res = main();\n");
-            cls.append("    System.out.println(res);\n");
+            TypeSimple typeMain = sem.typeRetourDe("main");
+            if (typeMain == TypeSimple.VIDE) {
+                // Si main() est void, on l'appelle simplement
+                cls.append("    main();\n");
+            } else {
+                // Sinon on récupère la valeur et on l'affiche
+                cls.append("    Object res = main();\n");
+                cls.append("    System.out.println(res);\n");
+            }
             cls.append("  }\n\n");
         }
+
 
         if (!fonctions.isEmpty()) {
             cls.append("  // Méthodes\n");

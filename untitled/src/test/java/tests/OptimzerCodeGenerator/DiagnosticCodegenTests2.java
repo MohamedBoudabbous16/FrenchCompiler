@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+//Tests obsolete pour le moment: ils ont servi juste a diagnostiquer
 public class DiagnosticCodegenTests2 {
 
     private static final String SRC_LIRE = """

@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Retourne extends Instruction{
     private final Expression expression;
 
@@ -8,7 +10,7 @@ public class Retourne extends Instruction{
     public Expression getExpression() {return this.expression;}
 
     @Override
-    public String genJava() {
-        return "return " + expression.genJava()+";";
+    public String genJava(AnalyseSemantique sem) {
+        return "return " + expression.genJava(sem) + ";";
     }
 }

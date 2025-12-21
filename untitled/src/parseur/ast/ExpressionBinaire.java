@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class ExpressionBinaire extends Expression {
     private final Expression gauche;
     private final String op;
@@ -22,7 +24,7 @@ public class ExpressionBinaire extends Expression {
     }
 
     @Override
-    public String genJava() {
-        return "(" + gauche.genJava() + " " + op + " " + droite.genJava() + ")";
+    public String genJava(AnalyseSemantique sem) {
+        return "(" + gauche.genJava(sem) + " " + op + " " + droite.genJava(sem) + ")";
     }
 }

@@ -9,7 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnalyseSemantique {
-
+    // nomFonction -> arité
+    private final Map<String, Integer> ariteParFonction = new HashMap<>();
     private final Map<String, TypeSimple> retourParFonction = new HashMap<>();
     private TypeSimple retourCourant = null;
     private final Map<String, Map<String, TypeSimple>> varsParFonction = new HashMap<>();
@@ -35,13 +36,16 @@ public class AnalyseSemantique {
     private void verifierFonction(Fonction f) {
         fonctionCourante = f.getNom();
 
+        // ✅ ENREGISTRER L’ARITÉ DE LA FONCTION
+        ariteParFonction.put(fonctionCourante, f.getParam().size());
+
         // Table des variables inférées de cette fonction
         varsParFonction.put(fonctionCourante, new HashMap<>());
 
         retourCourant = null;
         ts.entrerPortee(); // portée de la fonction
 
-        // Paramètres : si ton langage n’a pas de types, tu peux choisir ENTIER par défaut
+        // Paramètres : typés ENTIER par défaut
         for (String p : f.getParam()) {
             ts.declarer(p, TypeSimple.ENTIER, true);
             varsParFonction.get(fonctionCourante).put(p, TypeSimple.ENTIER);
@@ -50,8 +54,14 @@ public class AnalyseSemantique {
         verifierBloc(f.getCorps());
 
         ts.sortirPortee();
-        retourParFonction.put(fonctionCourante, (retourCourant == null) ? TypeSimple.VIDE : retourCourant);
+
+        // Type de retour final
+        retourParFonction.put(
+                fonctionCourante,
+                (retourCourant == null) ? TypeSimple.VIDE : retourCourant
+        );
     }
+
 
     private void verifierBloc(Bloc bloc) {
         ts.entrerPortee(); // portée de bloc
@@ -68,9 +78,25 @@ public class AnalyseSemantique {
             return;
         }
         if (i instanceof parseur.ast.Affiche a) {
-            typerExpression(a.getExpression()); // accepte tous types (int/bool/string/char)
+            TypeSimple t = typerExpression(a.getExpression());
+            if (t == TypeSimple.VIDE) {
+                throw new ErreurSemantique(
+                        msg("Impossible d'afficher une expression de type VIDE")
+                );
+            }
             return;
         }
+        if (i instanceof AppelFonctionInstr afi) {
+            // On réutilise la même logique que pour un appel dans une expression :
+            // - vérifie fonction connue
+            // - vérifie arité
+            // - type chaque argument
+            // Ici, on ignore juste la valeur de retour (même si non-VIDE).
+            typerExpression(afi.getAppel());
+            return;
+        }
+
+
 
 
         if (i instanceof Affectation a) {
@@ -171,6 +197,36 @@ public class AnalyseSemantique {
 
             return s.getType();
         }
+        if (e instanceof AppelFonction a) {
+
+            // 1️⃣ Fonction connue ?
+            TypeSimple typeRetour = typeRetourDe(a.getNom());
+            if (typeRetour == TypeSimple.INCONNU) {
+                throw new ErreurSemantique(
+                        msg("Fonction inconnue : " + a.getNom())
+                );
+            }
+
+            // 2️⃣ Vérification arité
+            // (simple pour l’instant : uniquement nombre d’arguments)
+            int ariteAttendue = nombreParamsDe(a.getNom());
+            if (a.getArgs().size() != ariteAttendue) {
+                throw new ErreurSemantique(
+                        msg("Mauvaise arité pour '" + a.getNom() +
+                                "' : attendu " + ariteAttendue +
+                                ", trouvé " + a.getArgs().size())
+                );
+            }
+
+            // 3️⃣ Typer chaque argument
+            for (Expression arg : a.getArgs()) {
+                typerExpression(arg);
+            }
+
+            // 4️⃣ Type de l’appel = type de retour de la fonction
+            return typeRetour;
+        }
+
 
         if (e instanceof ExpressionBinaire b) {
             TypeSimple g = typerExpression(b.getGauche());
@@ -253,4 +309,14 @@ public class AnalyseSemantique {
     private String msg(String details) {
         return "[Fonction " + fonctionCourante + "] " + details;
     }
+    private int nombreParamsDe(String nomFonction) {
+        if (!ariteParFonction.containsKey(nomFonction)) {
+            throw new ErreurSemantique(
+                    msg("Fonction inconnue : " + nomFonction)
+            );
+        }
+        return ariteParFonction.get(nomFonction);
+    }
+
+
 }

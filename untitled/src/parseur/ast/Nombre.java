@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Nombre extends Expression  {
 
     private final int valeur;
@@ -13,8 +15,7 @@ public class Nombre extends Expression  {
     }
 
     @Override
-    public String genJava() {
-        //pour le moment j'utilise toString definis par java pas la mienne
+    public String genJava(AnalyseSemantique sem) {
         return Integer.toString(valeur);
     }
 

@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Texte extends Expression {
 
     private final String valeur;
@@ -13,7 +15,7 @@ public class Texte extends Expression {
     }
 
     @Override
-    public String genJava() {
+    public String genJava(AnalyseSemantique sem) {
         return "\"" + valeur.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 }

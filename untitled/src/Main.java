@@ -11,7 +11,7 @@ import java.nio.file.Path;
 public class Main {
 
     // =========================
-    // TEST AFFICHE
+    // TEST AFFICHE OK
     // =========================
     public static void mainAfficheTest() {
         String source = """
@@ -20,11 +20,29 @@ public class Main {
               affiche(x);
               affiche("hello");
               affiche('A');
+              affiche(x + 1);
               retourne 0;
             }
             """;
 
-        lancerTest("TEST AFFICHE", source);
+        lancerTest("TEST AFFICHE OK", source);
+    }
+
+    // =========================
+    // TEST AFFICHE KO (VIDE)
+    // =========================
+    public static void mainAfficheVideTest() {
+        String source = """
+            fonction vide() {
+            }
+
+            fonction main() {
+              affiche(vide());
+              retourne 0;
+            }
+            """;
+
+        lancerTest("TEST AFFICHE VIDE (ERREUR ATTENDUE)", source);
     }
 
     // =========================
@@ -88,6 +106,10 @@ public class Main {
                     mainAfficheTest();
                     return;
                 }
+                case "--test-affiche-vide" -> {
+                    mainAfficheVideTest();
+                    return;
+                }
                 case "--test-concat-ok" -> {
                     mainConcatOKTest();
                     return;
@@ -124,6 +146,7 @@ public class Main {
                                 "Usage:\n" +
                                 "  java Main fichier.txt\n" +
                                 "  java Main --test-affiche\n" +
+                                "  java Main --test-affiche-vide\n" +
                                 "  java Main --test-concat-ok\n" +
                                 "  java Main --test-concat-ko\n"
                 );

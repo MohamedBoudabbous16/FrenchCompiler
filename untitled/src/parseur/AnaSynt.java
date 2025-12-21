@@ -170,13 +170,28 @@ public class AnaSynt {
         } else if (est(TypeJeton.Affiche)) {
             return analyserAffiche();
         } else if (est(TypeJeton.Identifiant)) {
-            // Pour l’instant on ne gère ici que l’affectation
+
+            // ✅ CAS 1 : appel de fonction comme instruction -> f(...);
+            if (prochainType() == TypeJeton.ParOuvr) {
+                Expression expr = analyserExpression();
+                consommer(TypeJeton.PointVirgule, "';' attendu après appel de fonction");
+
+                if (!(expr instanceof AppelFonction appel)) {
+                    throw erreur("Instruction invalide : appel de fonction attendu.");
+                }
+
+                return new AppelFonctionInstr(appel);
+            }
+
+            // ✅ CAS 2 : affectation -> x = expr;
             return analyserAffectation();
+
         } else {
             throw erreur("Instruction inattendue : " + courant().getType() +
                     " (" + courant().getValeur() + ")");
         }
     }
+
     private Instruction analyserAffiche() {
         consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
         consommer(TypeJeton.ParOuvr, "'(' attendu après 'affiche'");
@@ -420,9 +435,30 @@ public class AnaSynt {
         }
 
         if (est(TypeJeton.Identifiant)) {
+            Jeton nom = courant();
             avancer();
-            return new Identifiant(j.getValeur());
+
+            // 👉 APPEL DE FONCTION
+            if (est(TypeJeton.ParOuvr)) {
+                consommer(TypeJeton.ParOuvr, "'(' attendu après le nom de fonction");
+
+                List<Expression> args = new ArrayList<>();
+
+                if (!est(TypeJeton.ParFerm)) {
+                    do {
+                        args.add(analyserExpression());
+                    } while (consommerOptionnel(TypeJeton.Virgule));
+                }
+
+                consommer(TypeJeton.ParFerm, "')' attendu après les arguments");
+
+                return new AppelFonction(nom.getValeur(), args);
+            }
+
+            // 👉 IDENTIFIANT SIMPLE
+            return new Identifiant(nom.getValeur());
         }
+
 
         if (est(TypeJeton.Vrai)) {
             avancer();

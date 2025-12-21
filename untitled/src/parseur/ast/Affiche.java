@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Affiche extends Instruction {
 
     private final Expression expression;
@@ -13,7 +15,7 @@ public class Affiche extends Instruction {
     }
 
     @Override
-    public String genJava() {
-        return "System.out.println(" + expression.genJava() + ");";
+    public String genJava(AnalyseSemantique sem) {
+        return "System.out.println(" + expression.genJava(sem) + ");";
     }
 }

@@ -13,25 +13,14 @@ public class Programme implements Noeud {
     public List<Classe> getClasses() {
         return classes;
     }
-
     @Override
-    public String genJava() {
-        StringBuilder code = new StringBuilder();
-
-        for (Classe classe : classes) {
-            code.append(classe.genJava()).append("\n\n");
-        }
-
-        return code.toString();
-    }
-    public String genJava(semantic.AnalyseSemantique sem) {
+    public String genJava(AnalyseSemantique sem) {
         StringBuilder code = new StringBuilder();
         for (Classe classe : classes) {
             code.append(classe.genJava(sem)).append("\n\n");
         }
         return code.toString();
     }
-
     //une fois que le langage est stable, peut etre je vais enlever cette methode
     public void sauvegarderDansFichier(String nomFichier) {
         try (java.io.FileWriter writer = new java.io.FileWriter(nomFichier)) {

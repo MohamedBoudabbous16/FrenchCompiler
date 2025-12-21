@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Identifiant extends Expression{
 
     private String nom;
@@ -9,7 +11,7 @@ public class Identifiant extends Expression{
     public String getNom() {return nom;}
 
     @Override
-    public String genJava() {
+    public String genJava(AnalyseSemantique sem) {
         return nom;
     }
 }

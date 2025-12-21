@@ -1,5 +1,7 @@
 package parseur.ast;
 
+import semantic.AnalyseSemantique;
+
 public class Affectation extends Instruction{
 // une instruction d'affectation comme x = expression
     private final String nomVar;
@@ -16,8 +18,8 @@ public class Affectation extends Instruction{
     }
 
     @Override
-    public String genJava() {
-        return nomVar + "=" + expression.genJava() + ";";
+    public String genJava(AnalyseSemantique sem) {
+        return nomVar + "=" + expression.genJava(sem) + ";";
     }
 
 }

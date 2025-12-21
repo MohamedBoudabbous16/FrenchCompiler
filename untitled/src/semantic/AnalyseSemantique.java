@@ -5,8 +5,7 @@ import parseur.ast.controle.Pour;
 import parseur.ast.controle.Si;
 import parseur.ast.controle.TantQue;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AnalyseSemantique {
     private static class SignatureFonction {
@@ -23,6 +22,7 @@ public class AnalyseSemantique {
 //    private final Map<String, TypeSimple> retourParFonction = new HashMap<>();
     // À la place des deux cartes existantes :
     private final Map<String, SignatureFonction> signatures = new HashMap<>();
+    private final Map<String, Set<String>> loopVarsParFonction = new HashMap<>();
 
     private TypeSimple retourCourant = null;
     private final Map<String, Map<String, TypeSimple>> varsParFonction = new HashMap<>();
@@ -46,12 +46,13 @@ public class AnalyseSemantique {
         return varsParFonction.getOrDefault(nomFonction, Map.of());
     }
 
+
     private void verifierFonction(Fonction f) {
         fonctionCourante = f.getNom();
         varsParFonction.put(fonctionCourante, new HashMap<>());
+        loopVarsParFonction.put(fonctionCourante, new HashSet<>());
         retourCourant = null;
         ts.entrerPortee();
-
         // Paramètres (ENTIER par défaut)
         for (String p : f.getParam()) {
             ts.declarer(p, TypeSimple.ENTIER, true);
@@ -66,7 +67,9 @@ public class AnalyseSemantique {
         // Type de retour final
         TypeSimple typeRetour = (retourCourant == null) ? TypeSimple.VIDE : retourCourant;
         // On enregistre l’arité et le type
-        signatures.put(fonctionCourante, new SignatureFonction(f.getParam().size(), typeRetour));
+        signatures.put(fonctionCourante,
+                new SignatureFonction(f.getParam().size(),
+                        (retourCourant == null) ? TypeSimple.VIDE : retourCourant));
     }
 
 
@@ -162,6 +165,7 @@ public class AnalyseSemantique {
 
         if (i instanceof Pour p) {
             // Si tu veux un 'pour' qui déclare implicitement sa variable :
+            loopVarsParFonction.get(fonctionCourante).add(p.getNomVar());
             Symbole s = ts.resoudre(p.getNomVar());
             if (s == null) {
                 ts.declarer(p.getNomVar(), TypeSimple.ENTIER, false);
@@ -186,7 +190,10 @@ public class AnalyseSemantique {
 
         throw new ErreurSemantique(msg("Instruction non gérée : " + i.getClass().getSimpleName()));
     }
-
+    // Accesseur pour les compteurs de boucle
+    public Set<String> loopVariablesDe(String nomFonction) {
+        return loopVarsParFonction.getOrDefault(nomFonction, Collections.emptySet());
+    }
     private TypeSimple typerExpression(Expression e) {
 
         if (e instanceof Nombre) return TypeSimple.ENTIER;

@@ -62,11 +62,11 @@ public class Fonction implements Noeud {
 
         // 1) Déclarations Java des variables inférées (sauf paramètres)
         var vars = sem.variablesDe(nom);
+        var loopVars = sem.loopVariablesDe(nom);
         for (var entry : vars.entrySet()) {
             String varName = entry.getKey();
-
             // Ne pas redéclarer les paramètres
-            if (param.contains(varName)) continue;
+            if (param.contains(varName) || loopVars.contains(varName)) continue;
 
             String javaType = switch (entry.getValue()) {
                 case ENTIER -> "int";

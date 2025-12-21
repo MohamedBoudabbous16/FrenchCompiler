@@ -12,6 +12,16 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParseurTest {
 
     @Test
+    void parser_sanity() {
+        Object programme = TestTools.parseProgramme("""
+        fonction main() {
+          retourne 0;
+        }
+    """);
+        assertNotNull(programme);
+    }
+
+    @Test
     void testProgrammeSimple() {
         String source = """
             fonction f(a, b) {

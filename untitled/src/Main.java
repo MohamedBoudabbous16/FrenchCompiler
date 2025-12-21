@@ -1,7 +1,7 @@
-import parseur.AnaSynt;
-import parseur.ast.Programme;
-import semantic.AnalyseSemantique;
-import semantic.ErreurSemantique;
+import main.java.parseur.AnaSynt;
+import main.java.parseur.ast.Programme;
+import main.java.semantic.AnalyseSemantique;
+import main.java.semantic.ErreurSemantique;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

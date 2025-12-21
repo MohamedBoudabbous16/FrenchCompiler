@@ -9,9 +9,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnalyseSemantique {
+    private static class SignatureFonction {
+        final int arite;
+        final TypeSimple typeRetour;
+        SignatureFonction(int arite, TypeSimple typeRetour) {
+            this.arite = arite;
+            this.typeRetour = typeRetour;
+        }
+    }
+
     // nomFonction -> arité
-    private final Map<String, Integer> ariteParFonction = new HashMap<>();
-    private final Map<String, TypeSimple> retourParFonction = new HashMap<>();
+//    private final Map<String, Integer> ariteParFonction = new HashMap<>();
+//    private final Map<String, TypeSimple> retourParFonction = new HashMap<>();
+    // À la place des deux cartes existantes :
+    private final Map<String, SignatureFonction> signatures = new HashMap<>();
+
     private TypeSimple retourCourant = null;
     private final Map<String, Map<String, TypeSimple>> varsParFonction = new HashMap<>();
     private final TableSymboles ts = new TableSymboles();
@@ -25,7 +37,8 @@ public class AnalyseSemantique {
         }
     }
     public TypeSimple typeRetourDe(String nomFonction) {
-        return retourParFonction.getOrDefault(nomFonction, TypeSimple.INCONNU);
+        SignatureFonction sig = signatures.get(nomFonction);
+        return (sig == null) ? TypeSimple.INCONNU : sig.typeRetour;
     }
 
 
@@ -35,31 +48,25 @@ public class AnalyseSemantique {
 
     private void verifierFonction(Fonction f) {
         fonctionCourante = f.getNom();
-
-        // ✅ ENREGISTRER L’ARITÉ DE LA FONCTION
-        ariteParFonction.put(fonctionCourante, f.getParam().size());
-
-        // Table des variables inférées de cette fonction
         varsParFonction.put(fonctionCourante, new HashMap<>());
-
         retourCourant = null;
-        ts.entrerPortee(); // portée de la fonction
+        ts.entrerPortee();
 
-        // Paramètres : typés ENTIER par défaut
+        // Paramètres (ENTIER par défaut)
         for (String p : f.getParam()) {
             ts.declarer(p, TypeSimple.ENTIER, true);
             varsParFonction.get(fonctionCourante).put(p, TypeSimple.ENTIER);
         }
 
+        // Vérifier le corps
         verifierBloc(f.getCorps());
 
         ts.sortirPortee();
 
         // Type de retour final
-        retourParFonction.put(
-                fonctionCourante,
-                (retourCourant == null) ? TypeSimple.VIDE : retourCourant
-        );
+        TypeSimple typeRetour = (retourCourant == null) ? TypeSimple.VIDE : retourCourant;
+        // On enregistre l’arité et le type
+        signatures.put(fonctionCourante, new SignatureFonction(f.getParam().size(), typeRetour));
     }
 
 
@@ -102,16 +109,16 @@ public class AnalyseSemantique {
         if (i instanceof Affectation a) {
             TypeSimple tExpr = typerExpression(a.getExpression());
 
+            // Interdit d’affecter une expression VIDE
+            if (tExpr == TypeSimple.VIDE) {
+                throw new ErreurSemantique(msg("Impossible d'affecter une expression de type VIDE."));
+            }
             Symbole s = ts.resoudre(a.getNomVar());
-
-            // ✅ Déclaration implicite à la 1ère affectation
             if (s == null) {
                 ts.declarer(a.getNomVar(), tExpr, false);
                 varsParFonction.get(fonctionCourante).put(a.getNomVar(), tExpr);
                 return;
             }
-
-            // ✅ Cohérence de type
             if (s.getType() != tExpr) {
                 throw new ErreurSemantique(msg("Affectation incompatible : " + s.getType() + " = " + tExpr));
             }
@@ -121,7 +128,9 @@ public class AnalyseSemantique {
 
         if (i instanceof Retourne r) {
             TypeSimple t = typerExpression(r.getExpression());
-
+            if (t == TypeSimple.VIDE) {
+                throw new ErreurSemantique(msg("Impossible de retourner une expression de type VIDE."));
+            }
             if (retourCourant == null) {
                 retourCourant = t; // 1er return rencontré
             } else if (retourCourant != t) {
@@ -310,12 +319,11 @@ public class AnalyseSemantique {
         return "[Fonction " + fonctionCourante + "] " + details;
     }
     private int nombreParamsDe(String nomFonction) {
-        if (!ariteParFonction.containsKey(nomFonction)) {
-            throw new ErreurSemantique(
-                    msg("Fonction inconnue : " + nomFonction)
-            );
+        SignatureFonction sig = signatures.get(nomFonction);
+        if (sig == null) {
+            throw new ErreurSemantique(msg("Fonction inconnue : " + nomFonction));
         }
-        return ariteParFonction.get(nomFonction);
+        return sig.arite;
     }
 
 

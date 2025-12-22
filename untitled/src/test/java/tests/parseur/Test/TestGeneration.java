@@ -1,4 +1,4 @@
-package main.java.parseur.ast.Test;
+package test.java.tests.parseur.Test;
 
 import main.java.lexeur.Jeton;
 import main.java.lexeur.Lexeur;

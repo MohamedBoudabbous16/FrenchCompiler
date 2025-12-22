@@ -70,6 +70,18 @@ public final class Diagnostic {
     public static Builder builder(Gravite gravite, String message) {
         return new Builder(gravite, message);
     }
+    public static Diagnostic erreur(String message, Position position) {
+        return builder(Gravite.ERREUR, message).position(position).build();
+    }
+
+    public static Diagnostic avertissement(String message, Position position) {
+        return builder(Gravite.AVERTISSEMENT, message).position(position).build();
+    }
+
+    public static Diagnostic info(String message, Position position) {
+        return builder(Gravite.INFO, message).position(position).build();
+    }
+
 
     /* =========================
      *  ACCESSEURS
@@ -222,6 +234,40 @@ public final class Diagnostic {
     public int hashCode() {
         return Objects.hash(gravite, code, message, intervalle, aide, notes, cause);
     }
+
+    /**
+     * Source associée à ce diagnostic (souvent un nom de fichier).
+     * <p>
+     * Remarque : dans cette implémentation, la source est portée par l'intervalle
+     * (Position.source()).
+     *
+     * @return la source (String) ou null si inconnue
+     */
+    public String source() {
+        if (intervalle == null) return null;
+        Position debut = intervalle.debut();
+        if (debut == null) return null;
+        return debut.source();
+    }
+
+
+
+    /**
+     * Crée un Builder pré-rempli avec les valeurs de ce diagnostic.
+     * Utile pour "cloner" puis modifier quelques champs.
+     */
+    public Builder toBuilder() {
+        Builder b = builder(this.gravite, this.message);
+
+        if (this.code != null) b.code(this.code);
+        if (this.intervalle != null) b.intervalle(this.intervalle);
+        if (this.aide != null) b.aide(this.aide);
+        for (String n : this.notes) b.note(n);
+        if (this.cause != null) b.cause(this.cause);
+
+        return b;
+    }
+
 
     /* =========================
      *  BUILDER

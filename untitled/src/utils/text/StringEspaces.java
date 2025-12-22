@@ -107,7 +107,7 @@ public final class StringEspaces {
         for (int i = 0; i < ligne.length() && visuel < cible; i++) {
             char c = ligne.charAt(i);
             if (c == '\t') {
-                sb.append(' '.repeat(tab));
+                sb.append(" ".repeat(tab));
                 visuel += tab;
             } else {
                 sb.append(' ');

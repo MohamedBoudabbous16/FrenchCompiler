@@ -86,7 +86,7 @@ public final class StringEscape {
     }
 
     // -------------------------------------------------------------------------
-    // Déséchappement (utile si tu stockes des chaînes avec \n, \t, \uXXXX)
+    // Déséchappement (utile si tu stockes des chaînes avec \n, \t,
     // -------------------------------------------------------------------------
 
     /**
@@ -120,7 +120,7 @@ public final class StringEscape {
                 case '"' -> out.append('"');
                 case '\'' -> out.append('\'');
                 case 'u' -> {
-                    // \uXXXX
+                    //
                     if (i + 4 <= s.length() - 1) {
                         String hex = s.substring(i + 1, i + 5);
                         Integer code = parseHex4(hex);
@@ -156,7 +156,7 @@ public final class StringEscape {
     }
 
     private static String escapeUnicode(char c) {
-        // Format Java : \uXXXX
+        // Format Java :
         int v = c;
         String hex = Integer.toHexString(v).toUpperCase();
         return "\\u" + "0".repeat(Math.max(0, 4 - hex.length())) + hex;

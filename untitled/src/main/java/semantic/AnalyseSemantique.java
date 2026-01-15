@@ -4,6 +4,7 @@ import main.java.parseur.ast.*;
 import main.java.parseur.ast.controle.Pour;
 import main.java.parseur.ast.controle.Si;
 import main.java.parseur.ast.controle.TantQue;
+import utils.diag.DiagnosticCollector;
 
 import java.util.*;
 
@@ -15,6 +16,12 @@ import java.util.*;
  *  - interdit les usages interdits (ex. afficher ou retourner une valeur VIDE)
  */
 public class AnalyseSemantique {
+
+    //modification apres implementation de utils:
+    private final DiagnosticCollector diags;
+    public AnalyseSemantique(DiagnosticCollector diags) {
+        this.diags = diags;
+    }
 
     /** Signature (arité et type de retour) d'une fonction. */
     private static class SignatureFonction {
@@ -227,22 +234,22 @@ public class AnalyseSemantique {
         }
 
         if (e instanceof AppelFonction a) {
-            // 1️⃣ Vérifier que la fonction existe
+            //  Vérifier que la fonction existe
             TypeSimple typeRetour = typeRetourDe(a.getNom());
             if (typeRetour == TypeSimple.INCONNU) {
                 throw new ErreurSemantique(msg("Fonction inconnue : " + a.getNom()));
             }
-            // 2️⃣ Vérifier l’arité
+            //  Vérifier l’arité
             int ariteAttendue = nombreParamsDe(a.getNom());
             if (a.getArgs().size() != ariteAttendue) {
                 throw new ErreurSemantique(msg("Mauvaise arité pour '" + a.getNom() +
                         "' : attendu " + ariteAttendue + ", trouvé " + a.getArgs().size()));
             }
-            // 3️⃣ Vérifier chaque argument
+            //  Vérifier chaque argument
             for (Expression arg : a.getArgs()) {
                 typerExpression(arg);
             }
-            // 4️⃣ Retourner le type de retour de la fonction
+            //  Retourner le type de retour de la fonction
             return typeRetour;
         }
 

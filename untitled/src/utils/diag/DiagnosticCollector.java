@@ -29,9 +29,8 @@ public final class DiagnosticCollector {
         this.sourceParDefaut = sourceParDefaut;
     }
 
-    // -------------------------------------------------------------------------
+
     // Configuration
-    // -------------------------------------------------------------------------
 
     public SourceTexte sourceParDefaut() {
         return sourceParDefaut;
@@ -41,9 +40,8 @@ public final class DiagnosticCollector {
         this.sourceParDefaut = sourceParDefaut;
     }
 
-    // -------------------------------------------------------------------------
+
     // Accès diagnostics
-    // -------------------------------------------------------------------------
 
     /** Retourne le conteneur mutable interne (Diagnostics). */
     public Diagnostics diagnostics() {
@@ -60,9 +58,8 @@ public final class DiagnosticCollector {
         return diagnostics.tous().size();
     }
 
-    // -------------------------------------------------------------------------
+
     // Ajout générique
-    // -------------------------------------------------------------------------
 
     /**
      * Ajoute un diagnostic (si null => ignoré).
@@ -73,9 +70,8 @@ public final class DiagnosticCollector {
         diagnostics.ajouter(d);
     }
 
-    // -------------------------------------------------------------------------
+
     // Ajout par gravité + helpers
-    // -------------------------------------------------------------------------
 
     public void erreur(String message) {
         ajouter(Diagnostic.erreur(message));
@@ -113,10 +109,7 @@ public final class DiagnosticCollector {
         ajouter(Diagnostic.info(message, intervalle));
     }
 
-    // -------------------------------------------------------------------------
     // Ajout "avancé" (code + cause, etc.)
-    // -------------------------------------------------------------------------
-
     public void erreur(String code, String message, Position position) {
         Objects.requireNonNull(message, "message");
         Diagnostic d = Diagnostic.erreur(message, Intervalle.at(position)).toBuilder().code(code).build();
@@ -190,10 +183,7 @@ public final class DiagnosticCollector {
         return out;
     }
 
-    // -------------------------------------------------------------------------
     // Formatage
-    // -------------------------------------------------------------------------
-
     /**
      * Formate tous les diagnostics avec une source explicite.
      * Si source == null, on tente la sourceParDefaut (sinon formatage "sans extrait").

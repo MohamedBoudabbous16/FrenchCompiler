@@ -1,5 +1,7 @@
 package utils.diag;
 
+import utils.text.SourceFormatter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -146,12 +148,19 @@ public final class Diagnostic {
      * Format riche avec extrait du code et caret '^'.
      * Si le diagnostic n'a pas d'intervalle ou si la ligne n'existe pas, fallback sur formatSimple().
      */
+    /**
+     * Format riche avec extrait du code et caret '^'.
+     * Si le diagnostic n'a pas d'intervalle, si la source est absente,
+     * ou si l'extrait ne peut pas être produit, fallback sur formatSimple().
+     */
     public String formatAvecSource(SourceTexte source) {
         if (intervalle == null || source == null) return formatSimple();
 
-        Position p = intervalle.debut();
-        String ligne = source.ligne(p.ligne());
-        if (ligne == null) return formatSimple();
+        Position debut = intervalle.debut();
+        if (debut == null) return formatSimple();
+
+        // Préfère le nom du SourceTexte si dispo, sinon celui de la Position
+        String nom = (source.nom() != null) ? source.nom() : debut.source();
 
         StringBuilder sb = new StringBuilder();
 
@@ -159,31 +168,27 @@ public final class Diagnostic {
         sb.append(gravite.libelle());
         if (code != null) sb.append(" ").append(code);
 
-        // Préfère le nom du SourceTexte si dispo, sinon celui de la Position
-        String nom = source.nom() != null ? source.nom() : p.source();
-        if (nom != null) sb.append(" ").append(nom).append(":").append(p.ligne()).append(":").append(p.colonne());
-        else sb.append(" ").append(p.ligne()).append(":").append(p.colonne());
+        if (nom != null) sb.append(" ").append(nom);
+
+        int li = Math.max(1, debut.ligne());
+        int co = Math.max(1, debut.colonne());
+        sb.append(":").append(li).append(":").append(co);
 
         sb.append(" : ").append(message).append("\n");
 
-        // Extrait
-        String no = String.valueOf(p.ligne());
-        sb.append("  ").append(no).append(" | ").append(ligne).append("\n");
+        // Extrait (gère aussi les intervalles multi-lignes / tabs / etc.)
+        String extrait = SourceFormatter.formater(source, intervalle);
+        if (extrait == null || extrait.isBlank()) return formatSimple();
+        sb.append(extrait).append("\n");
 
-        // Caret (colonne 1-indexée)
-        int col = Math.max(1, p.colonne());
-        sb.append("  ").append(" ".repeat(no.length())).append(" | ");
-
-        // On aligne le caret sur la colonne en tenant compte des tabulations:
-        sb.append(espacesPourCaret(ligne, col));
-        sb.append("^\n");
-
+        // Aide + notes
         if (aide != null) sb.append("  aide: ").append(aide).append("\n");
         for (String n : notes) sb.append("  note: ").append(n).append("\n");
 
         return sb.toString().stripTrailing();
     }
 
+    @Deprecated(forRemoval = true)
     private static String espacesPourCaret(String ligne, int colonne1Index) {
         // colonne1Index = 1 => caret au début (0 espaces)
         // pour les '\t', on remplace par 4 espaces visuellement (simple et stable)

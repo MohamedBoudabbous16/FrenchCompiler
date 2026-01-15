@@ -2,11 +2,13 @@ package test.java.tests.utils.text;
 
 
 
+import org.junit.Test;
 import org.junit.jupiter.api.Test;
 import utils.diag.Intervalle;
 import utils.diag.Position;
 import utils.diag.SourceTexte;
 import utils.text.SourceFormatter;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 

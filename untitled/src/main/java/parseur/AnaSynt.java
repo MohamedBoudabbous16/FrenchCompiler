@@ -62,6 +62,13 @@ public class AnaSynt {
     private int position;
     private final DiagnosticCollector diags;
 
+    private Position pos(Jeton j) {
+        if (j == null) return new Position(1, 1);
+        int l = Math.max(1, j.getLigne());
+        int c = Math.max(1, j.getColonne());
+        return new Position(l, c);
+    }
+
     public AnaSynt(List<Jeton> jetons, DiagnosticCollector diags) {
         this.jetons = jetons;
         this.position = 0;
@@ -97,8 +104,9 @@ public class AnaSynt {
                 avancer();
             }
         }
-
+        Position p0 = jetons.isEmpty() ? new Position(1,1) : pos(jetons.get(0));
         Classe classePrincipale = new Classe(
+                p0,
                 "ProgrammePrincipal",
                 List.of(),
                 List.of(),
@@ -109,7 +117,7 @@ public class AnaSynt {
 
         List<Classe> classes = new ArrayList<>();
         classes.add(classePrincipale);
-        return new Programme(classes);
+        return new Programme(p0, classes);
     }
 
     /**
@@ -146,20 +154,17 @@ public class AnaSynt {
 
         Bloc corps = analyserBloc();
 
-        return new Fonction(nom.getValeur(), params, corps);
+        return new Fonction(pos(nom), nom.getValeur(), params, corps);
     }
 
     private Bloc analyserBloc() {
-        consommer(TypeJeton.AccoladeOuvr, "'{' attendu pour commencer un bloc");
-
+        Jeton ouv = consommer(TypeJeton.AccoladeOuvr, "'{' attendu pour commencer un bloc");
         List<Instruction> instructions = new ArrayList<>();
         while (!est(TypeJeton.AccoFerma) && !estFin()) {
             instructions.add(analyserInstruction());
         }
-
         consommer(TypeJeton.AccoFerma, "'}' attendu pour terminer un bloc");
-
-        return new Bloc(instructions);
+        return new Bloc(pos(ouv), instructions);
     }
 
     /* ======================
@@ -178,59 +183,74 @@ public class AnaSynt {
         } else if (est(TypeJeton.Retourne)) {
             return analyserRetourne();
         } else if (est(TypeJeton.Affiche)) {
-            consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
+            // IMPORTANT : ne consomme pas ici, analyserAffiche() va consommer et garder la position
             return analyserAffiche(true);
         } else if (est(TypeJeton.AfficheSansRetourLigne)) {
-            consommer(TypeJeton.AfficheSansRetourLigne, "Mot-clé 'afficheSansRetourLigne' attendu");
+            // IMPORTANT : idem
             return analyserAffiche(false);
         } else if (est(TypeJeton.Identifiant)) {
 
-            //  CAS 1 : appel de fonction comme instruction -> f(...);
+            // CAS 1 : appel de fonction comme instruction -> f(...);
             if (prochainType() == TypeJeton.ParOuvr) {
                 Expression expr = analyserExpression();
                 consommer(TypeJeton.PointVirgule, "';' attendu après appel de fonction");
 
                 if (!(expr instanceof AppelFonction appel)) {
-                    Jeton j = courant(); // après analyserExpression/consommer, on pointe souvent sur ';' ou prochain jeton
+                    Jeton j = courant();
                     diags.erreur(
                             "Instruction invalide : appel de fonction attendu.",
-                            new utils.diag.Position(j.getLigne(), j.getColonne())
+                            pos(j) // utilise ton helper pos()
                     );
-                    return new Bloc(List.of()); // instruction neutre pour continuer
+                    // instruction neutre avec position
+                    return new Bloc(pos(j), List.of());
                 }
 
-                return new AppelFonctionInstr(appel);
+                // ✅ constructeur: AppelFonctionInstr(Position, AppelFonction)
+                // on prend la position de l'appel (souvent le nom de fonction)
+                return new AppelFonctionInstr(appel.getPosition(), appel);
             }
 
-            //  CAS 2 : affectation -> x = expr;
+            // CAS 2 : affectation -> x = expr;
             return analyserAffectation();
 
         } else {
             Jeton j = courant();
             diags.erreur(
                     "Instruction inattendue : " + j.getType() + " (" + j.getValeur() + ")",
-                    new utils.diag.Position(j.getLigne(), j.getColonne())
+                    pos(j)
             );
 
-            // récup simple : on saute le jeton inattendu
             avancer();
-            return new Bloc(List.of()); // instruction neutre pour continuer
+            return new Bloc(pos(j), List.of());
         }
     }
 
+
     private Instruction analyserAffiche(boolean newline) {
-        // consommer le mot-clé (affiche ou afficheSansRetourLigne) avant d’arriver ici
+        // 1) consommer le mot-clé ICI pour récupérer sa position
+        Jeton kw = newline
+                ? consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu")
+                : consommer(TypeJeton.AfficheSansRetourLigne, "Mot-clé 'afficheSansRetourLigne' attendu");
+
+        // 2) '('
         consommer(TypeJeton.ParOuvr, "'(' attendu après 'affiche'");
+
+        // 3) args
         List<Expression> args = new ArrayList<>();
         if (!est(TypeJeton.ParFerm)) {
             do {
                 args.add(analyserExpression());
             } while (consommerOptionnel(TypeJeton.Virgule));
         }
+
+        // 4) ')' + ';'
         consommer(TypeJeton.ParFerm, "')' attendu après les arguments");
         consommer(TypeJeton.PointVirgule, "';' attendu après affiche(...)");
-        return new Affiche(args, newline);
+
+        // 5) AST avec Position
+        return new Affiche(pos(kw), args, newline);
     }
+
 
 
     private Instruction analyserAffectation() {
@@ -238,18 +258,18 @@ public class AnaSynt {
         consommer(TypeJeton.Affecte, "'=' attendu après le nom de variable");
         Expression expr = analyserExpression();
         consommer(TypeJeton.PointVirgule, "';' attendu pour terminer l'affectation");
-        return new Affectation(ident.getValeur(), expr);
+        return new Affectation(pos(ident),ident.getValeur(), expr);
     }
 
     private Instruction analyserRetourne() {
-        consommer(TypeJeton.Retourne, "Mot-clé 'retourne' attendu");
+        Jeton kw = consommer(TypeJeton.Retourne, "Mot-clé 'retourne' attendu");
         Expression expr = analyserExpression();
         consommer(TypeJeton.PointVirgule, "';' attendu après l'expression de retour");
-        return new Retourne(expr);
+        return new Retourne(pos(kw), expr);
     }
 
     private Instruction analyserSi() {
-        consommer(TypeJeton.Si, "Mot-clé 'si' attendu");
+        Jeton kw = consommer(TypeJeton.Si, "Mot-clé 'si' attendu");
         consommer(TypeJeton.ParOuvr, "'(' attendu après 'si'");
         Expression condition = analyserExpression();
         consommer(TypeJeton.ParFerm, "')' attendu après la condition du 'si'");
@@ -262,16 +282,16 @@ public class AnaSynt {
             sinonInstr = analyserInstruction();
         }
 
-        return new Si(condition, alorsInstr, sinonInstr);
+        return new Si(pos(kw) ,condition, alorsInstr, sinonInstr);
     }
 
     private Instruction analyserTantQue() {
-        consommer(TypeJeton.TantQue, "Mot-clé 'tantque' attendu");
+        Jeton kw = consommer(TypeJeton.TantQue, "Mot-clé 'tantque' attendu");
         consommer(TypeJeton.ParOuvr, "'(' attendu après 'tantque'");
         Expression condition = analyserExpression();
         consommer(TypeJeton.ParFerm, "')' attendu après la condition du 'tantque'");
         Instruction corps = analyserInstruction();
-        return new TantQue(condition, corps);
+        return new TantQue(pos(kw), condition, corps);
     }
 
     /**
@@ -289,7 +309,7 @@ public class AnaSynt {
      * donc on les reconstruit à partir de deux jetons : '+' puis '='.
      */
     private Instruction analyserPour() {
-        consommer(TypeJeton.Pour, "Mot-clé 'pour' attendu");
+        Jeton kw = consommer(TypeJeton.Pour, "Mot-clé 'pour' attendu");
 
         Jeton ident = consommer(TypeJeton.Identifiant, "Nom de variable de boucle attendu");
 
@@ -311,7 +331,7 @@ public class AnaSynt {
 
         Instruction corps = analyserInstruction();
 
-        return new Pour(ident.getValeur(), debut, fin, operateur, pas, corps);
+        return new Pour(pos(kw), ident.getValeur(), debut, fin, operateur, pas, corps);
     }
 
     /**
@@ -350,9 +370,9 @@ public class AnaSynt {
     private Expression analyserOu() {
         Expression expr = analyserEt();
         while (est(TypeJeton.Ou)) {
-            consommer(TypeJeton.Ou, "'||' attendu");
+            Jeton opTok = consommer(TypeJeton.Ou, "'||' attendu"); // garde le jeton
             Expression droite = analyserEt();
-            expr = new ExpressionBinaire(expr, "||", droite);
+            expr = new ExpressionBinaire(pos(opTok), expr, "||", droite);
         }
         return expr;
     }
@@ -360,9 +380,9 @@ public class AnaSynt {
     private Expression analyserEt() {
         Expression expr = analyserEgalite();
         while (est(TypeJeton.Et)) {
-            consommer(TypeJeton.Et, "'&&' attendu");
+            Jeton opTok = consommer(TypeJeton.Et, "'&&' attendu");
             Expression droite = analyserEgalite();
-            expr = new ExpressionBinaire(expr, "&&", droite);
+            expr = new ExpressionBinaire(pos(opTok), expr, "&&", droite);
         }
         return expr;
     }
@@ -371,50 +391,26 @@ public class AnaSynt {
         Expression expr = analyserComparaison();
 
         while (est(TypeJeton.Egal) || est(TypeJeton.PasEgal)) {
-            Jeton op = courant();
+            Jeton opTok = courant();
             avancer();
             Expression droite = analyserComparaison();
-            String opStr = (op.getType() == TypeJeton.Egal) ? "==" : "!=";
-            expr = new ExpressionBinaire(expr, opStr, droite);
+            String opStr = (opTok.getType() == TypeJeton.Egal) ? "==" : "!=";
+            expr = new ExpressionBinaire(pos(opTok), expr, opStr, droite);
         }
 
         return expr;
     }
-
-    private Expression analyserComparaison() {
-        Expression expr = analyserAddition();
-
-        while (est(TypeJeton.Inf) || est(TypeJeton.InfEgal)
-                || est(TypeJeton.Superieur) || est(TypeJeton.SupEgal)) {
-
-            Jeton op = courant();
-            avancer();
-            Expression droite = analyserAddition();
-
-            String opStr;
-            switch (op.getType()) {
-                case Inf -> opStr = "<";
-                case InfEgal -> opStr = "<=";
-                case Superieur -> opStr = ">";
-                case SupEgal -> opStr = ">=";
-                default -> throw new IllegalStateException("Opérateur de comparaison inattendu : " + op.getType());
-            }
-
-            expr = new ExpressionBinaire(expr, opStr, droite);
-        }
-
-        return expr;
-    }
-
     private Expression analyserAddition() {
         Expression expr = analyserMultiplication();
 
         while (est(TypeJeton.Plus) || est(TypeJeton.Moins)) {
-            Jeton op = courant();
+            Jeton opTok = courant();
             avancer();
+
             Expression droite = analyserMultiplication();
-            String opStr = (op.getType() == TypeJeton.Plus) ? "+" : "-";
-            expr = new ExpressionBinaire(expr, opStr, droite);
+            String opStr = (opTok.getType() == TypeJeton.Plus) ? "+" : "-";
+
+            expr = new ExpressionBinaire(pos(opTok), expr, opStr, droite);
         }
 
         return expr;
@@ -424,19 +420,56 @@ public class AnaSynt {
         Expression expr = analyserPrimaire();
 
         while (est(TypeJeton.Mult) || est(TypeJeton.Div) || est(TypeJeton.Modulo)) {
-            Jeton op = courant();
+            Jeton opTok = courant();
             avancer();
+
             Expression droite = analyserPrimaire();
 
             String opStr;
-            switch (op.getType()) {
+            switch (opTok.getType()) {
                 case Mult -> opStr = "*";
                 case Div -> opStr = "/";
                 case Modulo -> opStr = "%";
-                default -> throw new IllegalStateException("Opérateur de multiplication inattendu : " + op.getType());
+                default -> {
+                    diags.erreur("Opérateur de multiplication inattendu : " + opTok.getType(), pos(opTok));
+                    opStr = "*"; // fallback neutre
+                }
             }
 
-            expr = new ExpressionBinaire(expr, opStr, droite);
+            expr = new ExpressionBinaire(pos(opTok), expr, opStr, droite);
+        }
+
+        return expr;
+    }
+
+
+    private Expression analyserComparaison() {
+        Expression expr = analyserAddition();
+
+        while (est(TypeJeton.Inf) || est(TypeJeton.InfEgal)
+                || est(TypeJeton.Superieur) || est(TypeJeton.SupEgal)) {
+
+            Jeton opTok = courant();
+            avancer();
+            Expression droite = analyserAddition();
+
+            String opStr;
+            switch (opTok.getType()) {
+                case Inf -> opStr = "<";
+                case InfEgal -> opStr = "<=";
+                case Superieur -> opStr = ">";
+                case SupEgal -> opStr = ">=";
+                default -> {
+                    // au lieu de throw, on diag + récup
+                    diags.erreur(
+                            "Opérateur de comparaison inattendu : " + opTok.getType(),
+                            pos(opTok)
+                    );
+                    opStr = "<"; // fallback neutre
+                }
+            }
+
+            expr = new ExpressionBinaire(pos(opTok), expr, opStr, droite);
         }
 
         return expr;
@@ -448,41 +481,40 @@ public class AnaSynt {
         if (est(TypeJeton.Nombre)) {
             avancer();
             int val = Integer.parseInt(j.getValeur());
-            return new Nombre(val);
+            return new Nombre(pos(j), val);
         }
 
         if (est(TypeJeton.Lire)) {
-            consommer(TypeJeton.Lire, "Mot-clé 'lire' attendu");
+            Jeton lireTok = consommer(TypeJeton.Lire, "Mot-clé 'lire' attendu");
             consommer(TypeJeton.ParOuvr, "'(' attendu après 'lire'");
             consommer(TypeJeton.ParFerm, "')' attendu après 'lire'");
-            return new Lire();
+            return new Lire(pos(lireTok));
         }
 
-        //  texte littéral
         if (est(TypeJeton.TexteLitteral)) {
             avancer();
-            return new Texte(j.getValeur());
+            return new Texte(pos(j), j.getValeur());
         }
 
-        //  caractère littéral
         if (est(TypeJeton.CaractereLitteral)) {
             avancer();
 
             if (j.getValeur() == null || j.getValeur().length() != 1) {
                 diags.erreur(
                         "CaractereLitteral invalide : '" + j.getValeur() + "'",
-                        new utils.diag.Position(j.getLigne(), j.getColonne())
+                        pos(j)
                 );
-                // récupération : on renvoie un caractère "neutre"
-                return new Caractere('\0');
+                return new Caractere(pos(j), '\0');
             }
 
-            return new Caractere(j.getValeur().charAt(0));
+            return new Caractere(pos(j), j.getValeur().charAt(0));
         }
+
         if (est(TypeJeton.Identifiant)) {
             Jeton nom = courant();
             avancer();
-            // APPEL DE FONCTION
+
+            // appel de fonction : f(...)
             if (est(TypeJeton.ParOuvr)) {
                 consommer(TypeJeton.ParOuvr, "'(' attendu après le nom de fonction");
 
@@ -494,34 +526,38 @@ public class AnaSynt {
                 }
 
                 consommer(TypeJeton.ParFerm, "')' attendu après les arguments");
-                return new AppelFonction(nom.getValeur(), args);
+                return new AppelFonction(pos(nom), nom.getValeur(), args);
             }
-            //  IDENTIFIANT SIMPLE
-            return new Identifiant(nom.getValeur());
+
+            // identifiant simple
+            return new Identifiant(pos(nom), nom.getValeur());
         }
+
         if (est(TypeJeton.Vrai)) {
             avancer();
-            return new Identifiant("true");
+            return new Identifiant(pos(j), "true");
         }
+
         if (est(TypeJeton.Faux)) {
             avancer();
-            return new Identifiant("false");
+            return new Identifiant(pos(j), "false");
         }
+
         if (est(TypeJeton.ParOuvr)) {
+            Jeton par = courant();
             avancer();
             Expression expr = analyserExpression();
             consommer(TypeJeton.ParFerm, "')' attendu après l'expression parenthésée");
+            // Ici on renvoie expr directement (pas besoin de wrapper)
             return expr;
         }
-        // au lieu de throw erreur(...)
+
         diags.erreur(
                 "Expression primaire attendue, trouvé : " + j.getType() + " (" + j.getValeur() + ")",
-                new utils.diag.Position(j.getLigne(), j.getColonne())
+                pos(j)
         );
-        // récup simple : on saute le jeton inattendu pour avancer
         avancer();
-        // expression neutre pour continuer (0)
-        return new Nombre(0);
+        return new Nombre(pos(j), 0);
     }
 
     /* ======================

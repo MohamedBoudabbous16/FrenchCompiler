@@ -2,13 +2,15 @@ package main.java.parseur.ast.controle;
 
 import main.java.parseur.ast.*;
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class TantQue extends Instruction {
 
     private final Expression condition;
     private final Instruction corps;
 
-    public TantQue(Expression condition, Instruction corps) {
+    public TantQue(Position pos, Expression condition, Instruction corps) {
+        super(pos);
         this.condition = condition;
         this.corps = corps;
     }

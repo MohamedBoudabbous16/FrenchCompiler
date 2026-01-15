@@ -2,13 +2,15 @@ package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
 import main.java.semantic.TypeSimple;
+import utils.diag.Position;
+
 import java.util.List;
 
 /**
  * Représente une classe générée par le compilateur.
  * Elle contient uniquement des fonctions et produit la classe Java correspondante.
  */
-public class Classe implements Noeud {
+public class Classe extends NoeudAst {
     private final String nom;
     private final List<String> meres;
     private final List<String> prives;
@@ -16,8 +18,9 @@ public class Classe implements Noeud {
     private final List<String> finaux;
     private final List<Fonction> fonctions;
 
-    public Classe(String nom, List<String> meres, List<String> prives,
+    public Classe(Position pos, String nom, List<String> meres, List<String> prives,
                   List<String> publics, List<String> finaux, List<Fonction> fonctions) {
+        super(pos);
         this.nom = nom;
         this.meres = meres;
         this.prives = prives;

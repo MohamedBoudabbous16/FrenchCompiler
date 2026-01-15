@@ -1,6 +1,7 @@
 package main.java.parseur.ast.controle;
 import main.java.parseur.ast.*;
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Si extends Instruction {
 
@@ -8,7 +9,8 @@ public class Si extends Instruction {
     private final Instruction alorsInstr;
     private final Instruction sinonInstr; // Peut être null
 
-    public Si(Expression condition, Instruction alorsInstr, Instruction sinonInstr) {
+    public Si(Position pos, Expression condition, Instruction alorsInstr, Instruction sinonInstr) {
+        super(pos);
         this.condition = condition;
         this.alorsInstr = alorsInstr;
         this.sinonInstr = sinonInstr;

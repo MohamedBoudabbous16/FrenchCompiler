@@ -1,12 +1,14 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Caractere extends Expression {
 
     private final char valeur;
 
-    public Caractere(char valeur) {
+    public Caractere(Position pos, char valeur) {
+        super(pos);
         this.valeur = valeur;
     }
 

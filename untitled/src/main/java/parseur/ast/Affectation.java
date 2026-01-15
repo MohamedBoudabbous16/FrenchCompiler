@@ -1,12 +1,14 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Affectation extends Instruction{
 // une instruction d'affectation comme x = expression
     private final String nomVar;
     private final Expression expression;;
-    public Affectation(String nomVar, Expression expression) {
+    public Affectation(Position pos, String nomVar, Expression expression) {
+        super(pos);
         this.nomVar = nomVar;
         this.expression = expression;
     }

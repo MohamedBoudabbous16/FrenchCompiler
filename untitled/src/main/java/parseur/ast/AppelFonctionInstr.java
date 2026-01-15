@@ -1,12 +1,14 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class AppelFonctionInstr extends Instruction {
 
     private final AppelFonction appel;
 
-    public AppelFonctionInstr(AppelFonction appel) {
+    public AppelFonctionInstr(Position pos,AppelFonction appel) {
+        super(pos);
         this.appel = appel;
     }
 

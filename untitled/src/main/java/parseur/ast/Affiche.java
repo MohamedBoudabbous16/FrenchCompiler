@@ -1,6 +1,7 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 import java.util.List;
 
@@ -11,7 +12,8 @@ public class Affiche extends Instruction {
     private final List<Expression> expressions;
     private final boolean newline;
 
-    public Affiche(List<Expression> expressions, boolean newline) {
+    public Affiche( Position pos, List<Expression> expressions, boolean newline) {
+        super(pos);
         this.expressions = expressions;
         this.newline = newline;
     }

@@ -1,4 +1,7 @@
 package main.java.parseur.ast;
 
-public abstract class Instruction implements Noeud {
+import utils.diag.Position;
+
+public abstract class Instruction extends NoeudAst {
+    protected Instruction(Position pos) { super(pos); }
 }

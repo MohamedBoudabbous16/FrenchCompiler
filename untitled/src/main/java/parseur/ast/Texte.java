@@ -1,12 +1,14 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Texte extends Expression {
 
     private final String valeur;
 
-    public Texte(String valeur) {
+    public Texte(Position pos, String valeur) {
+        super(pos);
         this.valeur = valeur;
     }
 

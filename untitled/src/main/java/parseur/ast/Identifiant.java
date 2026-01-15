@@ -1,12 +1,15 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Identifiant extends Expression{
 
     private String nom;
 
-    public Identifiant(String nom) {this.nom = nom;}
+    public Identifiant(Position pos, String nom) {
+        super(pos);
+        this.nom = nom;}
 
     public String getNom() {return nom;}
 

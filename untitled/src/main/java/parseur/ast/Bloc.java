@@ -1,13 +1,15 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 import java.util.List;
 
 public class Bloc extends Instruction{
     private final List<Instruction> instructions;
 
-    public Bloc(List<Instruction> instructions) {
+    public Bloc(Position pos,List<Instruction> instructions) {
+        super(pos);
         this.instructions = instructions;
     }
     public List<Instruction> getInstructions() {

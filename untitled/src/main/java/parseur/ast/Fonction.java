@@ -1,15 +1,17 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 import java.util.List;
 
-public class Fonction implements Noeud {
+public class Fonction extends NoeudAst {
     private final String nom;
     private final List<String> param;
     private final Bloc corps;
 
-    public Fonction(String nom, List<String> param, Bloc corps) {
+    public Fonction(Position pos, String nom, List<String> param, Bloc corps) {
+        super(pos);
         this.nom = nom;
         this.param = param;
         this.corps = corps;

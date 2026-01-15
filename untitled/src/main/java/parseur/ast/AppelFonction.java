@@ -1,6 +1,7 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 import java.util.List;
 
@@ -9,7 +10,8 @@ public class AppelFonction extends Expression {
     private final String nom;
     private final List<Expression> args;
 
-    public AppelFonction(String nom, List<Expression> args) {
+    public AppelFonction(Position pos, String nom, List<Expression> args) {
+        super(pos);
         this.nom = nom;
         this.args = args;
     }

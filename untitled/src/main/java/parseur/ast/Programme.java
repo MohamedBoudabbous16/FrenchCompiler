@@ -1,18 +1,23 @@
 package main.java.parseur.ast;
+
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
+
 import java.util.List;
 
-public class Programme implements Noeud {
+public class Programme extends NoeudAst {
 
     private final List<Classe> classes;
 
-    public Programme(List<Classe> classes) {
+    public Programme(Position pos, List<Classe> classes) {
+        super(pos);
         this.classes = classes;
     }
 
     public List<Classe> getClasses() {
         return classes;
     }
+
     @Override
     public String genJava(AnalyseSemantique sem) {
         StringBuilder code = new StringBuilder();
@@ -21,7 +26,7 @@ public class Programme implements Noeud {
         }
         return code.toString();
     }
-    //une fois que le langage est stable, peut etre je vais enlever cette methode
+//une fois que le langage est stable, peut etre je vais enlever cette methode
     public void sauvegarderDansFichier(String nomFichier, AnalyseSemantique sem) {
         try (java.io.FileWriter writer = new java.io.FileWriter(nomFichier)) {
             writer.write(this.genJava(sem));
@@ -30,5 +35,5 @@ public class Programme implements Noeud {
             System.err.println("Erreur lors de la sauvegarde : " + e.getMessage());
         }
     }
-
 }
+

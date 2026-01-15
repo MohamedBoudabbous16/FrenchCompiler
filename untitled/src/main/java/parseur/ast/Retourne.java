@@ -1,11 +1,14 @@
 package main.java.parseur.ast;
 
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 public class Retourne extends Instruction{
     private final Expression expression;
 
-    public Retourne(Expression expression) {this.expression = expression;}
+    public Retourne(Position pos,Expression expression) {
+        super(pos);
+        this.expression = expression;}
 
     public Expression getExpression() {return this.expression;}
 

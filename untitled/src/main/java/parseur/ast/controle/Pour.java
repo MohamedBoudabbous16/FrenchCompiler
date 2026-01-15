@@ -2,6 +2,7 @@ package main.java.parseur.ast.controle;
 
 import main.java.parseur.ast.*;
 import main.java.semantic.AnalyseSemantique;
+import utils.diag.Position;
 
 /**
  * pour i = [0; 10], +=1	Incrémentation (i croît)
@@ -19,7 +20,8 @@ public class Pour extends Instruction {
     private final Expression pas;
     private final Instruction corps;
 
-    public Pour(String nomVar, Expression debut, Expression fin, String operateur, Expression pas, Instruction corps) {
+    public Pour(Position pos,String nomVar, Expression debut, Expression fin, String operateur, Expression pas, Instruction corps) {
+        super(pos);
         this.nomVar = nomVar;
         this.debut = debut;
         this.fin = fin;

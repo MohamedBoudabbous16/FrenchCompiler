@@ -2,12 +2,17 @@ package main.java.ir;
 
 import java.util.Objects;
 
-/** exprG op exprD */
-public record IrBinaire(IrExpression gauche, String operateur, IrExpression droite) implements IrExpression {
+/**
+ * Expression binaire IR : gauche op droite
+ */
+public record IrBinaire(IrExpression gauche, String op, IrExpression droite) implements IrExpression {
+
     public IrBinaire {
+        gauche = (gauche == null) ? new IrVariable("<g?>") : gauche;
+        droite = (droite == null) ? new IrVariable("<d?>") : droite;
+        op = (op == null || op.isBlank()) ? "?" : op;
         Objects.requireNonNull(gauche, "gauche");
-        Objects.requireNonNull(operateur, "operateur");
+        Objects.requireNonNull(op, "op");
         Objects.requireNonNull(droite, "droite");
     }
-    public String op() { return operateur; }
 }

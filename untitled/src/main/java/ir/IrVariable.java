@@ -2,9 +2,13 @@ package main.java.ir;
 
 import java.util.Objects;
 
-public record IrVariable(String nom) implements IrExpression {
+/**
+ * Variable IR (nom symbolique).
+ */
+public record IrVariable(String name) implements IrExpression {
+
     public IrVariable {
-        Objects.requireNonNull(nom, "nom");
+        name = (name == null || name.isBlank()) ? "<var?>" : name;
+        Objects.requireNonNull(name, "name");
     }
-    public String name() { return nom; }
 }

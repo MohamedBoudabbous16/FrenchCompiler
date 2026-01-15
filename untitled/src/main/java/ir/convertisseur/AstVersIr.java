@@ -103,19 +103,14 @@ public final class AstVersIr {
 
         // Affectation
         if (i instanceof Affectation a) {
-            String var = getStringViaGetterOrField(a, "getNom", "nom", "variable", "nomVariable");
-            if (var == null) var = getStringViaGetterOrField(a, "getVariable", "var");
-            IrExpression expr = convertirExpression(getExprViaGetterOrField(a, "getExpression", "expression", "expr"));
-            return new IrAffectation(safeString(var, "<var?>"), expr);
+            String var = safeString(a.getNomVar(), "<var?>");
+            IrExpression expr = convertirExpression(a.getExpression());
+            return new IrAffectation(var, expr);
         }
 
         // Retourne
         if (i instanceof Retourne r) {
-            IrExpression expr = null;
-            try {
-                Expression astExpr = getExprViaGetterOrField(r, "getExpression", "expression", "expr");
-                if (astExpr != null) expr = convertirExpression(astExpr);
-            } catch (Exception ignored) {}
+            IrExpression expr = (r.getExpression() == null) ? null : convertirExpression(r.getExpression());
             return new IrRetourne(expr);
         }
 
@@ -131,49 +126,34 @@ public final class AstVersIr {
 
         // AppelFonctionInstr
         if (i instanceof AppelFonctionInstr afi) {
-            // ta classe contient "AppelFonction appel" (d'après ton parser)
-            Expression ast = getExprViaGetterOrField(afi, "getAppel", "appel", "expression");
-            if (ast == null) {
-                // fallback: si le champ s'appelle autrement
-                ast = getExprViaGetterOrField(afi, "getExpression", "expr");
-            }
-            return new IrExpressionInstr(convertirExpression(ast));
+            AppelFonction appel = afi.getAppel();
+            return new IrExpressionInstr(convertirExpression(appel));
         }
 
         // Si
         if (i instanceof Si s) {
-            IrExpression cond = convertirExpression(getExprViaGetterOrField(s, "getCondition", "condition", "cond"));
-            Instruction alorsAst = (Instruction) getObjViaGetterOrField(s, "getAlorsInstr", "alorsInstr", "alors");
-            Instruction sinonAst = (Instruction) getObjViaGetterOrField(s, "getSinonInstr", "sinonInstr", "sinon");
-
-            IrInstruction alorsIr = convertirInstruction(alorsAst);
-            IrInstruction sinonIr = (sinonAst == null) ? null : convertirInstruction(sinonAst);
+            IrExpression cond = convertirExpression(s.getCondition());
+            IrInstruction alorsIr = convertirInstruction(s.getAlorsInstr());
+            IrInstruction sinonIr = (s.getSinonInstr() == null) ? null : convertirInstruction(s.getSinonInstr());
             return new IrSi(cond, alorsIr, sinonIr);
         }
 
         // TantQue
         if (i instanceof TantQue t) {
-            IrExpression cond = convertirExpression(getExprViaGetterOrField(t, "getCondition", "condition", "cond"));
-            Instruction corpsAst = (Instruction) getObjViaGetterOrField(t, "getCorps", "corps", "body");
-            return new IrTantQue(cond, convertirInstruction(corpsAst));
+            IrExpression cond = convertirExpression(t.getCondition());
+            IrInstruction corpsIr = convertirInstruction(t.getCorps());
+            return new IrTantQue(cond, corpsIr);
         }
 
         // Pour
         if (i instanceof Pour p) {
-            String var = getStringViaGetterOrField(p, "getNomVariable", "nomVariable", "ident", "variable");
-            Expression debut = getExprViaGetterOrField(p, "getDebut", "debut");
-            Expression fin = getExprViaGetterOrField(p, "getFin", "fin");
-            String op = getStringViaGetterOrField(p, "getOperateur", "operateur", "operateurPas");
-            Expression pas = getExprViaGetterOrField(p, "getPas", "pas");
-            Instruction corps = (Instruction) getObjViaGetterOrField(p, "getCorps", "corps", "body");
-
             return new IrPour(
-                    safeString(var, "<i?>"),
-                    convertirExpression(debut),
-                    convertirExpression(fin),
-                    safeString(op, "+="),
-                    convertirExpression(pas),
-                    convertirInstruction(corps)
+                    safeString(p.getNomVar(), "<i?>"),
+                    convertirExpression(p.getDebut()),
+                    convertirExpression(p.getFin()),
+                    safeString(p.getOperateur(), "+="),
+                    convertirExpression(p.getPas()),
+                    convertirInstruction(p.getCorps())
             );
         }
 
@@ -193,29 +173,22 @@ public final class AstVersIr {
         }
 
         // Nombre
-        if (isInstanceOf(e, "main.java.parseur.ast.Nombre")) {
-            Integer v = getIntViaGetterOrField(e, "getValeur", "valeur", "value", "n");
-            if (v == null) {
-                // parfois stocké dans "val" etc.
-                v = getIntViaGetterOrField(e, "getVal", "val");
-            }
-            return new IrConstInt(v == null ? 0 : v);
+        if (e instanceof Nombre n) {
+            return new IrConstInt(n.getValeur());
         }
 
         // Texte
-        if (isInstanceOf(e, "main.java.parseur.ast.Texte")) {
-            String s = getStringViaGetterOrField(e, "getValeur", "valeur", "texte", "value");
-            return new IrConstTexte(safeString(s, ""));
+        if (e instanceof Texte t) {
+            return new IrConstTexte(safeString(t.getValeur(), ""));
         }
 
         // Caractere
-        if (isInstanceOf(e, "main.java.parseur.ast.Caractere")) {
-            Character c = getCharViaGetterOrField(e, "getValeur", "valeur", "caractere", "value");
-            return new IrConstChar(c == null ? '\0' : c);
+        if (e instanceof Caractere c) {
+            return new IrConstChar(c.getValeur());
         }
 
         // Identifiant (inclut tes booléens "true"/"false" que tu mets comme Identifiant)
-        if (e instanceof main.java.parseur.ast.Identifiant id) {
+        if (e instanceof Identifiant id) {
             String nom = id.getNom();
             if ("true".equals(nom)) return new IrConstBool(true);
             if ("false".equals(nom)) return new IrConstBool(false);
@@ -223,29 +196,27 @@ public final class AstVersIr {
         }
 
         // ExpressionBinaire
-        if (isInstanceOf(e, "main.java.parseur.ast.ExpressionBinaire")) {
-            Expression g = getExprViaGetterOrField(e, "getGauche", "gauche", "left");
-            Expression d = getExprViaGetterOrField(e, "getDroite", "droite", "right");
-            String op = getStringViaGetterOrField(e, "getOperateur", "operateur", "op", "operator");
+        if (e instanceof ExpressionBinaire b) {
+            String op = null;
+
+            // chez toi: getop() (minuscule) -> on tente direct puis fallback
+            try { op = b.getop(); } catch (Exception ignored) {}
+            if (op == null) op = getStringViaGetterOrField(b, "getOp", "getOperateur", "getop", "op", "operateur");
 
             return new IrBinaire(
-                    convertirExpression(g),
+                    convertirExpression(b.getGauche()),
                     safeString(op, "?"),
-                    convertirExpression(d)
+                    convertirExpression(b.getDroite())
             );
         }
 
         // AppelFonction
-        if (isInstanceOf(e, "main.java.parseur.ast.AppelFonction")) {
-            String nom = getStringViaGetterOrField(e, "getNom", "nom", "nomFonction", "name");
-            @SuppressWarnings("unchecked")
-            List<Expression> argsAst = (List<Expression>) getObjViaGetterOrField(e, "getArgs", "args", "arguments");
-            if (argsAst == null) argsAst = List.of();
-
+        if (e instanceof AppelFonction a) {
             List<IrExpression> argsIr = new ArrayList<>();
-            for (Expression a : argsAst) argsIr.add(convertirExpression(a));
-
-            return new IrAppel(safeString(nom, "<f?>"), argsIr);
+            if (a.getArgs() != null) {
+                for (Expression arg : a.getArgs()) argsIr.add(convertirExpression(arg));
+            }
+            return new IrAppel(safeString(a.getNom(), "<f?>"), argsIr);
         }
 
         // Si tu rajoutes d'autres types d'expressions plus tard:
@@ -268,15 +239,13 @@ public final class AstVersIr {
         };
     }
 
-    private static boolean isInstanceOf(Object o, String fqcn) {
-        return o != null && o.getClass().getName().equals(fqcn);
-    }
-
     private static String safeString(String s, String def) {
         return (s == null) ? def : s;
     }
 
     private static Object getObjViaGetterOrField(Object target, String... names) {
+        if (target == null) return null;
+
         for (String name : names) {
             // 1) méthode getter exacte
             try {
@@ -299,25 +268,6 @@ public final class AstVersIr {
     private static String getStringViaGetterOrField(Object target, String... names) {
         Object o = getObjViaGetterOrField(target, names);
         return (o instanceof String s) ? s : null;
-    }
-
-    private static Integer getIntViaGetterOrField(Object target, String... names) {
-        Object o = getObjViaGetterOrField(target, names);
-        if (o instanceof Integer i) return i;
-        if (o instanceof Number n) return n.intValue();
-        return null;
-    }
-
-    private static Character getCharViaGetterOrField(Object target, String... names) {
-        Object o = getObjViaGetterOrField(target, names);
-        if (o instanceof Character c) return c;
-        if (o instanceof String s && s.length() == 1) return s.charAt(0);
-        return null;
-    }
-
-    private static Expression getExprViaGetterOrField(Object target, String... names) {
-        Object o = getObjViaGetterOrField(target, names);
-        return (o instanceof Expression e) ? e : null;
     }
 
     private static Field findField(Class<?> c, String name) {

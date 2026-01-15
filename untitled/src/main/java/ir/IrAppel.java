@@ -3,12 +3,15 @@ package main.java.ir;
 import java.util.List;
 import java.util.Objects;
 
-/** appel f(args...) */
-public record IrAppel(String nomFonction, List<IrExpression> args) implements IrExpression {
+/**
+ * Appel de fonction IR : nom(args...)
+ */
+public record IrAppel(String nom, List<IrExpression> args) implements IrExpression {
+
     public IrAppel {
-        Objects.requireNonNull(nomFonction, "nomFonction");
+        nom = (nom == null || nom.isBlank()) ? "<f?>" : nom;
+        args = (args == null) ? List.of() : List.copyOf(args);
+        Objects.requireNonNull(nom, "nom");
         Objects.requireNonNull(args, "args");
     }
-    public String nom() { return nomFonction; }
-    public List<IrExpression> arguments() { return args; }
 }

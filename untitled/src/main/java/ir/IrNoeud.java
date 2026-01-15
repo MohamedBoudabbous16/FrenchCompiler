@@ -1,6 +1,8 @@
 package main.java.ir;
 
-/** Marqueur commun à tous les nœuds IR. */
-public sealed interface IrNoeud
-        permits IrProgramme, IrFonction, IrInstruction, IrExpression {
+/**
+ * Racine de tous les nœuds de l’IR.
+ * IR = représentation intermédiaire stable, indépendante du parseur.
+ */
+public sealed interface IrNoeud permits IrProgramme, IrFonction, IrInstruction, IrExpression {
 }

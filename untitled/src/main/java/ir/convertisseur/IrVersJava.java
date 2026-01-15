@@ -1,6 +1,5 @@
 package main.java.ir.convertisseur;
 
-
 import main.java.ir.*;
 import main.java.semantic.AnalyseSemantique;
 import main.java.semantic.TypeSimple;
@@ -64,7 +63,8 @@ public final class IrVersJava {
         }
 
         // Fonctions
-        for (IrFonction f : p.fonctions()) {
+        List<IrFonction> fonctions = (p.fonctions() == null) ? List.of() : p.fonctions();
+        for (IrFonction f : fonctions) {
             out.append(genFunction(f, sem));
             out.append("\n");
         }
@@ -88,7 +88,7 @@ public final class IrVersJava {
         sb.append("  public static ").append(ret).append(" ").append(f.nom()).append("(");
 
         // paramètres: Object par défaut (comme ton générateur actuel)
-        List<String> params = f.params() == null ? List.of() : f.params();
+        List<String> params = (f.params() == null) ? List.of() : f.params();
         for (int i = 0; i < params.size(); i++) {
             sb.append("Object ").append(params.get(i));
             if (i < params.size() - 1) sb.append(", ");
@@ -115,7 +115,7 @@ public final class IrVersJava {
     private static Map<String, TypeSimple> variablesFromSem(AnalyseSemantique sem, String fnName) {
         if (sem == null) return Map.of();
         try {
-            var m = sem.variablesDe(fnName);
+            Map<String, TypeSimple> m = sem.variablesDe(fnName);
             return (m == null) ? Map.of() : m;
         } catch (Exception e) {
             return Map.of();
@@ -264,7 +264,10 @@ public final class IrVersJava {
 
             out.add(ind + "while (" + cond + ") {");
             out.addAll(genInstructionLines(p.corps(), sem, fnName, varTypes, declared, indentLevel + 1));
-            out.add(ind + "  " + i + " " + op + " " + step + ";");
+
+            String indIn = "  ".repeat(indentLevel + 1);
+            out.add(indIn + i + " " + op + " " + step + ";");
+
             out.add(ind + "}");
             return out;
         }

@@ -8,6 +8,7 @@ import main.java.parseur.ast.controle.Pour;
 import main.java.parseur.ast.controle.Si;
 import main.java.parseur.ast.controle.TantQue;
 import utils.diag.DiagnosticCollector;
+import utils.diag.Position;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,10 +60,12 @@ public class AnaSynt {
 
     private final List<Jeton> jetons;
     private int position;
+    private final DiagnosticCollector diags;
 
-    public AnaSynt(List<Jeton> jetons) {
+    public AnaSynt(List<Jeton> jetons, DiagnosticCollector diags) {
         this.jetons = jetons;
         this.position = 0;
+        this.diags = diags;
     }
 
     /* ======================
@@ -81,20 +84,26 @@ public class AnaSynt {
             if (est(TypeJeton.Fonction)) {
                 fonctions.add(analyserFonction());
             } else if (est(TypeJeton.FinFichier)) {
-                // sécurité au cas où un jeton FinFichier est présent dans la liste
                 break;
             } else {
-                throw erreur("Mot-clé 'fonction' attendu au début d'une définition de fonction");
+                Jeton j = courant();
+                diags.erreur(
+                        "Mot-clé 'fonction' attendu au début d'une définition de fonction"
+                                + " (trouvé : " + j.getType() + " '" + j.getValeur() + "')",
+                        new utils.diag.Position(j.getLigne(), j.getColonne())
+                );
+
+                // récup simple : on saute le jeton inattendu et on continue
+                avancer();
             }
         }
 
-        // Pour l’instant : une seule classe "ProgrammePrincipal"
         Classe classePrincipale = new Classe(
                 "ProgrammePrincipal",
-                List.of(),      // meres
-                List.of(),      // prives
-                List.of(),      // publics
-                List.of(),      // finaux
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(),
                 fonctions
         );
 
@@ -110,7 +119,7 @@ public class AnaSynt {
     public static Programme analyser(String source, DiagnosticCollector diags) {
         Lexeur lexeur = new Lexeur(source, diags);
         List<Jeton> jetons = lexeur.analyser();
-        AnaSynt parser = new AnaSynt(jetons); // ou AnaSynt(jetons, diags) si tu le modifies aussi
+        AnaSynt parser = new AnaSynt(jetons, diags); // ou AnaSynt(jetons, diags) si tu le modifies aussi
         return parser.analyserProgramme();
     }
 
@@ -171,29 +180,41 @@ public class AnaSynt {
         } else if (est(TypeJeton.Affiche)) {
             consommer(TypeJeton.Affiche, "Mot-clé 'affiche' attendu");
             return analyserAffiche(true);
-        }else if (est(TypeJeton.AfficheSansRetourLigne)) {
+        } else if (est(TypeJeton.AfficheSansRetourLigne)) {
             consommer(TypeJeton.AfficheSansRetourLigne, "Mot-clé 'afficheSansRetourLigne' attendu");
-            return analyserAffiche(false);}
-        else if (est(TypeJeton.Identifiant)) {
+            return analyserAffiche(false);
+        } else if (est(TypeJeton.Identifiant)) {
 
-            // ✅ CAS 1 : appel de fonction comme instruction -> f(...);
+            //  CAS 1 : appel de fonction comme instruction -> f(...);
             if (prochainType() == TypeJeton.ParOuvr) {
                 Expression expr = analyserExpression();
                 consommer(TypeJeton.PointVirgule, "';' attendu après appel de fonction");
 
                 if (!(expr instanceof AppelFonction appel)) {
-                    throw erreur("Instruction invalide : appel de fonction attendu.");
+                    Jeton j = courant(); // après analyserExpression/consommer, on pointe souvent sur ';' ou prochain jeton
+                    diags.erreur(
+                            "Instruction invalide : appel de fonction attendu.",
+                            new utils.diag.Position(j.getLigne(), j.getColonne())
+                    );
+                    return new Bloc(List.of()); // instruction neutre pour continuer
                 }
 
                 return new AppelFonctionInstr(appel);
             }
 
-            // ✅ CAS 2 : affectation -> x = expr;
+            //  CAS 2 : affectation -> x = expr;
             return analyserAffectation();
 
         } else {
-            throw erreur("Instruction inattendue : " + courant().getType() +
-                    " (" + courant().getValeur() + ")");
+            Jeton j = courant();
+            diags.erreur(
+                    "Instruction inattendue : " + j.getType() + " (" + j.getValeur() + ")",
+                    new utils.diag.Position(j.getLigne(), j.getColonne())
+            );
+
+            // récup simple : on saute le jeton inattendu
+            avancer();
+            return new Bloc(List.of()); // instruction neutre pour continuer
         }
     }
 
@@ -437,32 +458,35 @@ public class AnaSynt {
             return new Lire();
         }
 
-
-        // ✅ AJOUT : texte littéral
+        //  texte littéral
         if (est(TypeJeton.TexteLitteral)) {
             avancer();
             return new Texte(j.getValeur());
         }
 
-        // ✅ AJOUT : caractère littéral
+        //  caractère littéral
         if (est(TypeJeton.CaractereLitteral)) {
             avancer();
+
             if (j.getValeur() == null || j.getValeur().length() != 1) {
-                throw erreur("CaractereLitteral invalide : '" + j.getValeur() + "'");
+                diags.erreur(
+                        "CaractereLitteral invalide : '" + j.getValeur() + "'",
+                        new utils.diag.Position(j.getLigne(), j.getColonne())
+                );
+                // récupération : on renvoie un caractère "neutre"
+                return new Caractere('\0');
             }
+
             return new Caractere(j.getValeur().charAt(0));
         }
-
         if (est(TypeJeton.Identifiant)) {
             Jeton nom = courant();
             avancer();
-
-            // 👉 APPEL DE FONCTION
+            // APPEL DE FONCTION
             if (est(TypeJeton.ParOuvr)) {
                 consommer(TypeJeton.ParOuvr, "'(' attendu après le nom de fonction");
 
                 List<Expression> args = new ArrayList<>();
-
                 if (!est(TypeJeton.ParFerm)) {
                     do {
                         args.add(analyserExpression());
@@ -470,38 +494,35 @@ public class AnaSynt {
                 }
 
                 consommer(TypeJeton.ParFerm, "')' attendu après les arguments");
-
                 return new AppelFonction(nom.getValeur(), args);
             }
-
-            // 👉 IDENTIFIANT SIMPLE
+            //  IDENTIFIANT SIMPLE
             return new Identifiant(nom.getValeur());
         }
-
-
         if (est(TypeJeton.Vrai)) {
             avancer();
-            // On génère directement "true" en Java
             return new Identifiant("true");
         }
-
         if (est(TypeJeton.Faux)) {
             avancer();
-            // On génère directement "false" en Java
             return new Identifiant("false");
         }
-
         if (est(TypeJeton.ParOuvr)) {
             avancer();
             Expression expr = analyserExpression();
             consommer(TypeJeton.ParFerm, "')' attendu après l'expression parenthésée");
             return expr;
         }
-
-        throw erreur("Expression primaire attendue, trouvé : " + j.getType() +
-                " (" + j.getValeur() + ")");
+        // au lieu de throw erreur(...)
+        diags.erreur(
+                "Expression primaire attendue, trouvé : " + j.getType() + " (" + j.getValeur() + ")",
+                new utils.diag.Position(j.getLigne(), j.getColonne())
+        );
+        // récup simple : on saute le jeton inattendu pour avancer
+        avancer();
+        // expression neutre pour continuer (0)
+        return new Nombre(0);
     }
-
 
     /* ======================
      *   GESTION DES JETONS
@@ -547,9 +568,19 @@ public class AnaSynt {
             avancer();
             return j;
         }
-        throw erreur(messageErreur + " (trouvé : " + courant().getType() +
-                " '" + courant().getValeur() + "')");
+
+        Jeton j = courant();
+        diags.erreur(
+                messageErreur + " (trouvé : " + j.getType() + " '" + j.getValeur() + "')",
+                new utils.diag.Position(j.getLigne(), j.getColonne())
+        );
+
+        // Récupération simple : on avance pour éviter de boucler, et on renvoie le jeton courant
+        // (le parse continue, mais l’AST peut être bancal si trop d’erreurs).
+        avancer();
+        return j;
     }
+
 
     /**
      * Consomme un jeton si son type correspond, sinon ne fait rien.
@@ -573,4 +604,21 @@ public class AnaSynt {
                 ", colonne " + j.getColonne() + " : " + message;
         return new RuntimeException(msg);
     }
+
+    /** Ajoute un diagnostic (PARxxx) avec la position du jeton. */
+    private void signalerErreur(String message, Jeton j) {
+        if (diags == null) return;
+        int l = (j == null) ? -1 : j.getLigne();
+        int c = (j == null) ? -1 : j.getColonne();
+        diags.erreur("PAR001", message, new Position(l, c));
+    }
+
+    /** Récupération “panic-mode” : saute jusqu’à ';' ou '}' ou fin. */
+    private void synchroniserInstruction() {
+        while (!estFin() && !est(TypeJeton.PointVirgule) && !est(TypeJeton.AccoFerma)) {
+            avancer();
+        }
+        if (est(TypeJeton.PointVirgule)) avancer(); // consommer le ';' si présent
+    }
 }
+

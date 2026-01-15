@@ -8,7 +8,6 @@ import utils.diag.DiagnosticCollector;
 
 import java.util.*;
 
-import static utils.diag.Diagnostic.erreur;
 
 /**
  * Effectue la vérification sémantique :
@@ -124,7 +123,7 @@ public class AnalyseSemantique {
             for (Expression expr : a.getExpressions()) {
                 TypeSimple t = typerExpression(expr);
                 if (t == TypeSimple.VIDE) {
-                    erreur("Impossible d'afficher une expression de type VIDE");
+                    err("Impossible d'afficher une expression de type VIDE");
                 }
             }
             return;
@@ -141,7 +140,7 @@ public class AnalyseSemantique {
 
             // Interdit d’affecter une expression VIDE
             if (tExpr == TypeSimple.VIDE) {
-                erreur("Impossible d'affecter une expression de type VIDE.");
+                err("Impossible d'affecter une expression de type VIDE.");
                 return; // évite de déclarer/valider avec un type interdit
             }
 
@@ -152,11 +151,11 @@ public class AnalyseSemantique {
                     varsParFonction.get(fonctionCourante).put(a.getNomVar(), tExpr);
                 } catch (RuntimeException ex) {
                     // si TableSymboles rejette la déclaration (doublon par ex.)
-                    erreur("Variable '" + a.getNomVar() + "' déjà déclarée dans cette portée.");
+                    err("Variable '" + a.getNomVar() + "' déjà déclarée dans cette portée.");
                 }
-            } else if (s.getType() != tExpr && tExpr != TypeSimple.INCONNU) {
+            } else if (tExpr != TypeSimple.INCONNU && s.getType() != tExpr) {
                 // si tExpr est INCONNU, on évite l'effet domino
-                erreur("Affectation incompatible : " + s.getType() + " = " + tExpr);
+                err("Affectation incompatible : " + s.getType() + " = " + tExpr);
             }
             return;
         }
@@ -166,7 +165,7 @@ public class AnalyseSemantique {
 
             // Interdit de retourner une expression VIDE
             if (t == TypeSimple.VIDE) {
-                erreur("Impossible de retourner une expression de type VIDE.");
+                err("Impossible de retourner une expression de type VIDE.");
                 return;
             }
 
@@ -178,7 +177,7 @@ public class AnalyseSemantique {
             if (retourCourant == null) {
                 retourCourant = t;
             } else if (retourCourant != t) {
-                erreur("Types de retour incompatibles : " + retourCourant + " et " + t);
+                err("Types de retour incompatibles : " + retourCourant + " et " + t);
             }
             return;
         }
@@ -186,7 +185,7 @@ public class AnalyseSemantique {
         if (i instanceof Si s) {
             TypeSimple tCond = typerExpression(s.getCondition());
             if (tCond != TypeSimple.BOOLEEN && tCond != TypeSimple.INCONNU) {
-                erreur("Condition de 'si' doit être BOOLEEN, trouvé : " + tCond);
+                err("Condition de 'si' doit être BOOLEEN, trouvé : " + tCond);
             }
             verifierInstruction(s.getAlorsInstr());
             if (s.getSinonInstr() != null) {
@@ -198,7 +197,7 @@ public class AnalyseSemantique {
         if (i instanceof TantQue tq) {
             TypeSimple tCond = typerExpression(tq.getCondition());
             if (tCond != TypeSimple.BOOLEEN && tCond != TypeSimple.INCONNU) {
-                erreur("Condition de 'tantque' doit être BOOLEEN, trouvé : " + tCond);
+                err("Condition de 'tantque' doit être BOOLEEN, trouvé : " + tCond);
             }
             verifierInstruction(tq.getCorps());
             return;
@@ -215,34 +214,40 @@ public class AnalyseSemantique {
                     ts.declarer(p.getNomVar(), TypeSimple.ENTIER, false);
                     varsParFonction.get(fonctionCourante).put(p.getNomVar(), TypeSimple.ENTIER);
                 } catch (RuntimeException ex) {
-                    erreur("Variable de boucle '" + p.getNomVar() + "' déjà déclarée dans cette portée.");
+                    err("Variable de boucle '" + p.getNomVar() + "' déjà déclarée dans cette portée.");
                 }
             } else if (s.getType() != TypeSimple.ENTIER) {
-                erreur("Variable de boucle '" + p.getNomVar() + "' doit être ENTIER.");
+                err("Variable de boucle '" + p.getNomVar() + "' doit être ENTIER.");
             }
 
             // Vérifier les bornes et le pas
             TypeSimple tDebut = typerExpression(p.getDebut());
             if (tDebut != TypeSimple.ENTIER && tDebut != TypeSimple.INCONNU) {
-                erreur("Début du 'pour' doit être ENTIER.");
+                err("Début du 'pour' doit être ENTIER.");
             }
 
             TypeSimple tFin = typerExpression(p.getFin());
             if (tFin != TypeSimple.ENTIER && tFin != TypeSimple.INCONNU) {
-                erreur("Fin du 'pour' doit être ENTIER.");
+                err("Fin du 'pour' doit être ENTIER.");
             }
 
             TypeSimple tPas = typerExpression(p.getPas());
             if (tPas != TypeSimple.ENTIER && tPas != TypeSimple.INCONNU) {
-                erreur("Pas du 'pour' doit être ENTIER.");
+                err("Pas du 'pour' doit être ENTIER.");
             }
 
             verifierInstruction(p.getCorps());
             return;
         }
 
-        erreur("Instruction non gérée : " + i.getClass().getSimpleName());
+        err("Instruction non gérée : " + i.getClass().getSimpleName());
     }
+
+    /** Helper: ajoute une erreur avec le contexte de fonction courante. */
+    private void err(String details) {
+        diags.erreur(msg(details));
+    }
+
 
 
     /** Infère le type d’une expression (version diagnostics). */
@@ -261,7 +266,7 @@ public class AnalyseSemantique {
             // Résoudre l’identifiant
             Symbole s = ts.resoudre(id.getNom());
             if (s == null) {
-                erreur("Identifiant '" + id.getNom() + "' utilisé avant affectation.");
+                err("Identifiant '" + id.getNom() + "' utilisé avant affectation.");
                 return TypeSimple.INCONNU;
             }
             return s.getType();
@@ -271,16 +276,16 @@ public class AnalyseSemantique {
             // Vérifier que la fonction existe
             TypeSimple typeRetour = typeRetourDe(a.getNom());
             if (typeRetour == TypeSimple.INCONNU) {
-                erreur("Fonction inconnue : " + a.getNom());
+                err("Fonction inconnue : " + a.getNom());
                 // on continue quand même pour relever d'autres erreurs dans les args
                 for (Expression arg : a.getArgs()) typerExpression(arg);
                 return TypeSimple.INCONNU;
             }
 
             // Vérifier l’arité
-            int ariteAttendue = nombreParamsDe(a.getNom()); // version "safe" recommandée
+            int ariteAttendue = nombreParamsDe(a.getNom()); // version "safe"
             if (ariteAttendue >= 0 && a.getArgs().size() != ariteAttendue) {
-                erreur("Mauvaise arité pour '" + a.getNom() + "' : attendu "
+                err("Mauvaise arité pour '" + a.getNom() + "' : attendu "
                         + ariteAttendue + ", trouvé " + a.getArgs().size());
             }
 
@@ -319,7 +324,7 @@ public class AnalyseSemantique {
                     return TypeSimple.ENTIER;
                 }
 
-                erreur("Concaténation/addition invalide : '" + g + " + " + d + "'. "
+                err("Concaténation/addition invalide : '" + g + " + " + d + "'. "
                         + "Soit ENTIER+ENTIER, soit TEXTE à gauche.");
                 return TypeSimple.INCONNU;
             }
@@ -327,7 +332,7 @@ public class AnalyseSemantique {
             // Arithmétique
             if (op.equals("-") || op.equals("*") || op.equals("/") || op.equals("%")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
-                    erreur("Opérateur '" + op + "' attend ENTIER,ENTIER.");
+                    err("Opérateur '" + op + "' attend ENTIER,ENTIER.");
                     return TypeSimple.INCONNU;
                 }
                 return TypeSimple.ENTIER;
@@ -336,7 +341,7 @@ public class AnalyseSemantique {
             // Comparaison
             if (op.equals("<") || op.equals("<=") || op.equals(">") || op.equals(">=")) {
                 if (g != TypeSimple.ENTIER || d != TypeSimple.ENTIER) {
-                    erreur("Comparaison '" + op + "' attend ENTIER,ENTIER.");
+                    err("Comparaison '" + op + "' attend ENTIER,ENTIER.");
                     return TypeSimple.INCONNU;
                 }
                 return TypeSimple.BOOLEEN;
@@ -345,7 +350,7 @@ public class AnalyseSemantique {
             // Égalité
             if (op.equals("==") || op.equals("!=")) {
                 if (g != d) {
-                    erreur("Test '" + op + "' attend deux opérandes du même type.");
+                    err("Test '" + op + "' attend deux opérandes du même type.");
                     return TypeSimple.INCONNU;
                 }
                 return TypeSimple.BOOLEEN;
@@ -354,20 +359,19 @@ public class AnalyseSemantique {
             // Logique
             if (op.equals("&&") || op.equals("||")) {
                 if (g != TypeSimple.BOOLEEN || d != TypeSimple.BOOLEEN) {
-                    erreur("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN.");
+                    err("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN.");
                     return TypeSimple.INCONNU;
                 }
                 return TypeSimple.BOOLEEN;
             }
 
-            erreur("Opérateur binaire inconnu : " + op);
+            err("Opérateur binaire inconnu : " + op);
             return TypeSimple.INCONNU;
         }
 
-        erreur("Expression non gérée : " + e.getClass().getSimpleName());
+        err("Expression non gérée : " + e.getClass().getSimpleName());
         return TypeSimple.INCONNU;
     }
-
 
     /** Message d’erreur avec le nom de la fonction courante. */
     private String msg(String details) {
@@ -378,11 +382,12 @@ public class AnalyseSemantique {
     private int nombreParamsDe(String nomFonction) {
         SignatureFonction sig = signatures.get(nomFonction);
         if (sig == null) {
-            erreur("Fonction inconnue : " + nomFonction);
+            err("Fonction inconnue : " + nomFonction);
             return -1;
         }
         return sig.arite;
     }
+
 
 
 }

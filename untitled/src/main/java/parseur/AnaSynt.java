@@ -7,6 +7,7 @@ import main.java.parseur.ast.*;
 import main.java.parseur.ast.controle.Pour;
 import main.java.parseur.ast.controle.Si;
 import main.java.parseur.ast.controle.TantQue;
+import utils.diag.DiagnosticCollector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,10 +107,10 @@ public class AnaSynt {
      * Helper pratique si tu veux parser directement
      * à partir d’une chaîne source.
      */
-    public static Programme analyser(String source) {
-        Lexeur lexeur = new Lexeur(source);
+    public static Programme analyser(String source, DiagnosticCollector diags) {
+        Lexeur lexeur = new Lexeur(source, diags);
         List<Jeton> jetons = lexeur.analyser();
-        AnaSynt parser = new AnaSynt(jetons);
+        AnaSynt parser = new AnaSynt(jetons); // ou AnaSynt(jetons, diags) si tu le modifies aussi
         return parser.analyserProgramme();
     }
 

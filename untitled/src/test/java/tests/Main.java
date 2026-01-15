@@ -4,6 +4,7 @@ import main.java.parseur.AnaSynt;
 import main.java.parseur.ast.Programme;
 import main.java.semantic.AnalyseSemantique;
 import main.java.semantic.ErreurSemantique;
+import utils.diag.DiagnosticCollector;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,15 +18,15 @@ public class Main {
     // =========================
     public static void mainAfficheTest() {
         String source = """
-            fonction main() {
-              x = 1;
-              affiche(x);
-              affiche("hello");
-              affiche('A');
-              affiche(x + 1);
-              retourne 0;
-            }
-            """;
+                fonction main() {
+                  x = 1;
+                  affiche(x);
+                  affiche("hello");
+                  affiche('A');
+                  affiche(x + 1);
+                  retourne 0;
+                }
+                """;
 
         lancerTest("TEST AFFICHE OK", source);
     }
@@ -35,14 +36,14 @@ public class Main {
     // =========================
     public static void mainAfficheVideTest() {
         String source = """
-            fonction vide() {
-            }
-
-            fonction main() {
-              affiche(vide());
-              retourne 0;
-            }
-            """;
+                fonction vide() {
+                }
+                
+                fonction main() {
+                  affiche(vide());
+                  retourne 0;
+                }
+                """;
 
         lancerTest("TEST AFFICHE VIDE (ERREUR ATTENDUE)", source);
     }
@@ -52,12 +53,12 @@ public class Main {
     // =========================
     public static void mainConcatOKTest() {
         String source = """
-            fonction main() {
-              x = 3;
-              s = "valeur = " + x;
-              retourne s;
-            }
-            """;
+                fonction main() {
+                  x = 3;
+                  s = "valeur = " + x;
+                  retourne s;
+                }
+                """;
 
         lancerTest("TEST CONCAT OK", source);
     }
@@ -67,12 +68,12 @@ public class Main {
     // =========================
     public static void mainConcatKOTest() {
         String source = """
-            fonction main() {
-              x = 3;
-              s = x + "test";
-              retourne s;
-            }
-            """;
+                fonction main() {
+                  x = 3;
+                  s = x + "test";
+                  retourne s;
+                }
+                """;
 
         lancerTest("TEST CONCAT KO (ERREUR ATTENDUE)", source);
     }
@@ -80,25 +81,33 @@ public class Main {
     // =========================
     // MÉTHODE COMMUNE DE TEST
     // =========================
+
+
     private static void lancerTest(String nom, String source) {
         System.out.println("\n===== " + nom + " =====");
 
-        try {
-            Programme programme = AnaSynt.analyser(source);
-            AnalyseSemantique sem = new AnalyseSemantique();
-            sem.verifier(programme);
+        DiagnosticCollector diags = new DiagnosticCollector();
 
-            System.out.println(programme.genJava(sem));
-            System.out.println("✅ Test réussi");
+        Programme programme = AnaSynt.analyser(source, diags);
+        AnalyseSemantique sem = new AnalyseSemantique(diags);
+        sem.verifier(programme);
 
-        } catch (ErreurSemantique e) {
-            System.err.println("❌ Erreur sémantique : " + e.getMessage());
+        if (diags.aDesErreurs()) {
+            System.err.println("❌ Erreurs détectées :");
+            for (var d : diags.erreurs()) {
+                System.err.println(d);
+            }
+            return;
         }
+
+        System.out.println(programme.genJava(sem));
+        System.out.println("✅ Test réussi");
     }
 
-    // =========================
-    // MAIN PRINCIPAL
-    // =========================
+
+// (optionnel si tu veux un affichage avec extrait)
+// import utils.diag.SourceTexte;
+
     public static void main(String[] args) {
 
         // 🔹 Modes de test dédiés
@@ -126,9 +135,8 @@ public class Main {
         // =========================
         // MODE NORMAL (fichier)
         // =========================
+        String source;
         try {
-            String source;
-
             if (args.length >= 1) {
                 Path inputPath = Path.of(args[0]);
                 source = Files.readString(inputPath, StandardCharsets.UTF_8);
@@ -153,27 +161,42 @@ public class Main {
                                 "  java test.java.tests.Main --test-concat-ko\n"
                 );
             }
-
-            Programme programme = AnaSynt.analyser(source);
-            AnalyseSemantique sem = new AnalyseSemantique();
-            sem.verifier(programme);
-
-            String javaCode = programme.genJava(sem);
-
-            System.out.println("===== JAVA GÉNÉRÉ =====");
-            System.out.println(javaCode);
-
-            Path outputPath = Path.of("ProgrammePrincipal.java");
-            Files.writeString(outputPath, javaCode, StandardCharsets.UTF_8);
-
-            System.out.println("\n✅ Fichier Java généré : " + outputPath.toAbsolutePath());
-
-        } catch (ErreurSemantique e) {
-            System.err.println("❌ Erreur sémantique : " + e.getMessage());
         } catch (IOException e) {
             System.err.println("❌ Erreur E/S : " + e.getMessage());
-        } catch (RuntimeException e) {
-            System.err.println("❌ Erreur compilation : " + e.getMessage());
+            return;
+        }
+
+        DiagnosticCollector diags = new DiagnosticCollector();
+
+        // (optionnel) si tu veux formatTous(...) avec extrait, il faut une SourceTexte
+        // SourceTexte src = SourceTexte.de("stdin", source);
+        // diags.definirSourceParDefaut(src);
+
+        Programme programme = AnaSynt.analyser(source, diags);
+        AnalyseSemantique sem = new AnalyseSemantique(diags);
+        sem.verifier(programme);
+
+        if (diags.aDesErreurs()) {
+            System.err.println("❌ Erreurs détectées :");
+            for (var d : diags.erreurs()) {
+                System.err.println(d);
+            }
+            // ou si tu as SourceTexte: System.err.println(diags.formatTous());
+            return;
+        }
+
+        String javaCode = programme.genJava(sem);
+
+        System.out.println("===== JAVA GÉNÉRÉ =====");
+        System.out.println(javaCode);
+
+        try {
+            Path outputPath = Path.of("ProgrammePrincipal.java");
+            Files.writeString(outputPath, javaCode, StandardCharsets.UTF_8);
+            System.out.println("\n✅ Fichier Java généré : " + outputPath.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("❌ Erreur E/S : " + e.getMessage());
         }
     }
 }
+

@@ -1,4 +1,7 @@
 package main.java.lexeur;
+import utils.diag.DiagnosticCollector;
+import utils.diag.Position;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -10,6 +13,11 @@ import java.util.Map;
 
 public class Lexeur {
     //pour le moement pas de getters ni de setters
+
+
+    private final DiagnosticCollector diags;
+
+
     private final String texte;
     private int position;
     private int ligne;
@@ -64,7 +72,8 @@ public class Lexeur {
 
 
 
-    public Lexeur(String texte) {
+    public Lexeur(String texte, DiagnosticCollector diags) {
+        this.diags = diags;
         this.texte = texte;
         this.position = 0;
         this.ligne = 1;
@@ -187,12 +196,14 @@ public class Lexeur {
                 symbole = doubleSymbole;
             }
         }if (!SYMBOLES.containsKey(symbole)) {// si i ln'existe pas dans ma map je retourne un  mesage d'erreur
-            throw new RuntimeException("Symbole inconnu : '" + symbole + "' à la ligne " + ligne + ", colonne " + colonneDepart);
+            diags.erreur("Symbole inconnu : '" + symbole + "'", new Position(ligne, colonneDepart));
+            return null; // on continue l'analyse
         }
         return new Jeton(SYMBOLES.get(symbole), symbole, ligne, colonneDepart);
     }
 
     private Jeton lireTexteLitteral() {
+        int ligneDepart = ligne;
         int colonneDepart = colonne;
 
         avancer('"');
@@ -203,36 +214,54 @@ public class Lexeur {
             char c = caractereActuel();
 
             if (c == '\n') {
-                throw new RuntimeException("TexteLitteral non terminé à la ligne " + ligne + ", colonne " + colonneDepart);
+                diags.erreur("TexteLitteral non terminé (\" manquant avant fin de ligne)",
+                        new Position(ligneDepart, colonneDepart));
+                // ne consomme pas '\n' ici : la boucle principale le traitera comme espace
+                return new Jeton(TypeJeton.TexteLitteral, sb.toString(), ligneDepart, colonneDepart);
             }
+
 
             sb.append(c);
             avancer(c);
         }
 
         if (estTermine()) {
-            throw new RuntimeException("TexteLitteral non terminé (\" manquant) à la fin du fichier");
+            diags.erreur("TexteLitteral non terminé (\" manquant) à la fin du fichier",
+                    new Position(ligneDepart, colonneDepart));
+            return new Jeton(TypeJeton.TexteLitteral, sb.toString(), ligneDepart, colonneDepart);
         }
 
         avancer('"');
 
-        return new Jeton(TypeJeton.TexteLitteral, sb.toString(), ligne, colonneDepart);
+        return new Jeton(TypeJeton.TexteLitteral, sb.toString(), ligneDepart, colonneDepart);
     }
 
     private Jeton lireCaractereLitteral() {
+        int ligneDepart = ligne;
         int colonneDepart = colonne;
 
         avancer('\'');
 
-        if (estTermine() || caractereActuel() == '\n' || caractereActuel() == '\'') {
-            throw new RuntimeException("CaractereLitteral invalide à la ligne " + ligne + ", colonne " + colonneDepart);
+        if (estTermine() || caractereActuel() == '\n') {
+            diags.erreur("CaractereLitteral invalide (fin de ligne/fichier après ')", new Position(ligneDepart, colonneDepart));
+            return null;
         }
 
         char valeur = caractereActuel();
         avancer(valeur);
 
-        if (estTermine() || caractereActuel() != '\'') {
-            throw new RuntimeException("CaractereLitteral non terminé (') manquant) à la ligne " + ligne + ", colonne " + colonneDepart);
+        if (estTermine() || caractereActuel() == '\n' || caractereActuel() != '\'') {
+            diags.erreur("CaractereLitteral non terminé (') manquant)", new Position(ligneDepart, colonneDepart));
+
+            // récupération: avancer jusqu'à trouver ' ou fin de ligne/fichier
+            while (!estTermine() && caractereActuel() != '\n' && caractereActuel() != '\'') {
+                avancer(caractereActuel());
+            }
+            if (!estTermine() && caractereActuel() == '\'') {
+                avancer('\'');
+            }
+
+            return new Jeton(TypeJeton.CaractereLitteral, String.valueOf(valeur), ligneDepart, colonneDepart);
         }
 
         avancer('\'');

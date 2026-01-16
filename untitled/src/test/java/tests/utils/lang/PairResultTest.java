@@ -1,4 +1,4 @@
-package test.java.tests.utils.lang;
+package tests.utils.lang;
 
 import org.junit.jupiter.api.Test;
 import utils.lang.Pair;

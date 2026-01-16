@@ -1,6 +1,6 @@
-package main.java.optimizer;
+package java.optimizer;
 
-import main.java.parseur.ast.Programme;
+import java.parseur.ast.Programme;
 
 /**
  * Optimizer effectue des optimisations simples sur l'arbre abstrait.

@@ -1,26 +1,33 @@
-package test.java.tests.utils.diag;
+package tests.utils.diag;
 
 
 
 import org.junit.jupiter.api.Test;
 import utils.diag.*;
+import utils.diag.Intervalle;
+import utils.diag.Diagnostic;
+import utils.diag.Position;
+import utils.diag.Gravite;
+import  utils.diag.SourceTexte;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static utils.diag.Gravite.ERREUR;
 
 class DiagnosticTest {
 
     @Test
     void builder_et_toBuilder_clonage() {
-        Intervalle itv = Intervalle.at(new Position("f", 2, 3));
+        Position pos = new Position("f", 2, 3);
+        Intervalle itv = Intervalle.at(pos);
 
-        Diagnostic d = Diagnostic.builder(Gravite.ERREUR, "msg")
+        Diagnostic d = Diagnostic.builder(ERREUR, "msg")
                 .code("LEX001")
                 .intervalle(itv)
                 .aide("corrige ça")
                 .note("note1")
                 .build();
 
-        assertEquals(Gravite.ERREUR, d.gravite());
+        assertEquals(ERREUR, d.gravite());
         assertEquals("LEX001", d.code());
         assertEquals("msg", d.message());
         assertEquals(itv, d.intervalle());
@@ -35,7 +42,8 @@ class DiagnosticTest {
 
     @Test
     void formatSimple_contientInfosEssentielles() {
-        Intervalle itv = Intervalle.at(new Position("f", 2, 3));
+        Position pos =new Position("f", 2, 3);
+        Intervalle itv = Intervalle.at(pos);
         Diagnostic d = Diagnostic.erreur("boom", itv).toBuilder().code("PAR001").build();
 
         String s = d.formatSimple();

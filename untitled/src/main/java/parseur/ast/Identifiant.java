@@ -1,6 +1,6 @@
-package main.java.parseur.ast;
+package java.parseur.ast;
 
-import main.java.semantic.AnalyseSemantique;
+import java.semantic.AnalyseSemantique;
 import utils.diag.Position;
 
 public class Identifiant extends Expression{

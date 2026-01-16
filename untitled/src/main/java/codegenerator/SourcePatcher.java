@@ -1,4 +1,4 @@
-package main.java.codegenerator;
+package java.codegenerator;
 
 public final class SourcePatcher {
 

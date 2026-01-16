@@ -1,7 +1,7 @@
-package test.java.tests.OptimzerCodeGenerator;
+package tests.OptimzerCodeGenerator;
 
 import org.junit.jupiter.api.Test;
-import test.java.tests.TestTools;
+import tests.TestTools;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

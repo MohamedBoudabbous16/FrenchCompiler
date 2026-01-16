@@ -1,4 +1,4 @@
-package main.java.parseur.ast;
+package java.parseur.ast;
 
 
 

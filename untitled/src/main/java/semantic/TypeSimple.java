@@ -1,4 +1,4 @@
-package main.java.semantic;
+package java.semantic;
 
 public enum TypeSimple {
     ENTIER,

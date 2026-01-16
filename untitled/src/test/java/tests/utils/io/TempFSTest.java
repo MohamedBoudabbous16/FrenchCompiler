@@ -1,4 +1,4 @@
-package test.java.tests.utils.io;
+package tests.utils.io;
 
 import org.junit.jupiter.api.Test;
 import utils.io.TempFS;

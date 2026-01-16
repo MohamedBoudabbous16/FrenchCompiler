@@ -1,8 +1,8 @@
-package main.java.ir.convertisseur;
+package java.ir.convertisseur;
 
-import main.java.ir.*;
-import main.java.semantic.AnalyseSemantique;
-import main.java.semantic.TypeSimple;
+import java.ir.*;
+import java.semantic.AnalyseSemantique;
+import java.semantic.TypeSimple;
 
 import java.util.*;
 
@@ -280,10 +280,10 @@ public final class IrVersJava {
 
         if (e == IrLire.INSTANCE) return "lire()";
 
-        if (e instanceof IrConstInt c) return Integer.toString(c.value());
-        if (e instanceof IrConstBool b) return b.value() ? "true" : "false";
-        if (e instanceof IrConstChar c) return "'" + escapeChar(c.value()) + "'";
-        if (e instanceof IrConstTexte t) return "\"" + escapeString(t.value()) + "\"";
+        if (e instanceof IrConstInt c) return Integer.toString(c.valeur());
+        if (e instanceof IrConstBool b) return b.valeur() ? "true" : "false";
+        if (e instanceof IrConstChar c) return "'" + escapeChar(c.valeur()) + "'";
+        if (e instanceof IrConstTexte t) return "\"" + escapeString(t.valeur()) + "\"";
 
         if (e instanceof IrVariable v) return v.name();
 

@@ -1,5 +1,5 @@
-package test.java.tests.ir;
-import main.java.ir.*;
+package tests.ir;
+import java.ir.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

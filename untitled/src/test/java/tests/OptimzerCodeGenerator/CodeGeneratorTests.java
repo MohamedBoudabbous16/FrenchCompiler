@@ -1,8 +1,11 @@
-package test.java.tests.OptimzerCodeGenerator;
+package tests.OptimzerCodeGenerator;
 
-import main.java.semantic.AnalyseSemantique;
+import java.parseur.ast.Programme;
+import java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
-import test.java.tests.TestTools;
+import tests.TestTools;
+import utils.diag.DiagnosticCollector;
+import utils.diag.Position;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,8 +33,8 @@ public class CodeGeneratorTests {
         Object programme = TestTools.parseProgramme(SRC_LIRE);
 
         // (Optionnel) Sémantique : tu peux garder si ton generate() l'utilise déjà
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
 
@@ -59,8 +62,8 @@ public class CodeGeneratorTests {
     void codegenerator_affiche_multi_arguments_print_plusieurs_fois() {
         Object programme = TestTools.parseProgramme(SRC_AFFICHE_MULTI);
 
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
 

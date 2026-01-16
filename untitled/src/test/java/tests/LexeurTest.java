@@ -1,8 +1,8 @@
-package test.java.tests;
+package tests;
 
-import main.java.lexeur.Jeton;
-import main.java.lexeur.Lexeur;
-import main.java.lexeur.TypeJeton;
+import java.lexeur.Jeton;
+import java.lexeur.Lexeur;
+import java.lexeur.TypeJeton;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class LexeurTest {
             }
             """;
 
-        Lexeur lex = new Lexeur(source);
+        Lexeur lex = new Lexeur(source, new utils.diag.DiagnosticCollector());
         List<Jeton> jetons = lex.analyser();
 
         assertEquals(TypeJeton.Fonction, jetons.get(0).getType());

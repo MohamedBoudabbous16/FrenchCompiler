@@ -1,8 +1,10 @@
-package test.java.tests.OptimzerCodeGenerator;
+package tests.OptimzerCodeGenerator;
 
-import main.java.semantic.AnalyseSemantique;
+import java.parseur.ast.Programme;
+import java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
-import test.java.tests.TestTools;
+import tests.TestTools;
+import utils.diag.DiagnosticCollector;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -39,9 +41,9 @@ public class DiagnosticCodegenTests {
         int nbAffiche = countNodes(programme, "main.java.parseur.ast.Affiche");
 
         // 2) Génération directe via l’AST
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
-        String astJava = ((main.java.parseur.ast.Programme) programme).genJava(sem);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
+        String astJava = ((Programme) programme).genJava(sem);
 
         // 3) Génération via JavaGenerator (même logique que tes tests)
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
@@ -77,8 +79,8 @@ public class DiagnosticCodegenTests {
         Object programme = TestTools.parseProgramme(SRC_AFFICHE_MULTI);
         assertNotNull(programme);
 
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
 
         // 1) Diagnostiquer AST: Affiche doit exister ET avoir plusieurs args
         List<Object> afficheNodes = collectNodes(programme, "main.java.parseur.ast.Affiche");
@@ -89,7 +91,7 @@ public class DiagnosticCodegenTests {
         }
 
         // 2) Génération directe AST
-        String astJava = ((main.java.parseur.ast.Programme) programme).genJava(sem);
+        String astJava = ((Programme) programme).genJava(sem);
         int astPrintCount = countPrint(astJava);
 
         // 3) Génération via JavaGenerator
@@ -159,7 +161,7 @@ public class DiagnosticCodegenTests {
 
         // Fallback : appeler generate(...) puis getSource()
         try {
-            Method m = gen.getClass().getMethod("generate", main.java.parseur.ast.Programme.class);
+            Method m = gen.getClass().getMethod("generate", Programme.class);
             Object res = m.invoke(gen, programme);
             // GenerationResult.getSource()
             Method getSource = res.getClass().getMethod("getSource");

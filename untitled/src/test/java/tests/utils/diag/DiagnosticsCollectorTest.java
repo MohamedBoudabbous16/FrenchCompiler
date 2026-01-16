@@ -1,4 +1,4 @@
-package test.java.tests.utils.diag;
+package tests.utils.diag;
 
 
 
@@ -6,8 +6,14 @@ import org.junit.jupiter.api.Test;
 import utils.diag.*;
 
 import java.util.List;
+import utils.diag.Diagnostics;
+import utils.diag.Diagnostic;
+import utils.diag.DiagnosticCollector;
+import utils.diag.SourceTexte;
+ import utils.diag.Position;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static utils.diag.Gravite.ERREUR;
 
 class DiagnosticsCollectorTest {
 
@@ -41,12 +47,12 @@ class DiagnosticsCollectorTest {
 
         List<Diagnostic> erreurs = c.erreurs();
         assertEquals(1, erreurs.size());
-        assertEquals(Gravite.ERREUR, erreurs.get(0).gravite());
+        assertEquals(ERREUR, erreurs.get(0).gravite());
     }
 
     @Test
     void collector_formatTous_utilise_sourceParDefaut_si_aucune_source() {
-        SourceTexte src = new SourceTexte("prog", "a\nb\nc");
+        utils.diag.SourceTexte src = new SourceTexte("prog", "a\nb\nc");
         DiagnosticCollector c = new DiagnosticCollector(src);
 
         // Diagnostic sans Position.source() (Position(int,int) => source null)

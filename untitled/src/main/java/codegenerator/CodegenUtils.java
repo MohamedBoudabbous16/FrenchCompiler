@@ -1,7 +1,10 @@
-package main.java.codegenerator;
+package java.codegenerator;
 
-import main.java.parseur.ast.*;
-import main.java.semantic.TypeSimple;
+import java.parseur.ast.*;
+import java.parseur.ast.controle.Pour;
+import java.parseur.ast.controle.Si;
+import java.parseur.ast.controle.TantQue;
+import java.semantic.TypeSimple;
 
 public final class CodegenUtils {
     private CodegenUtils() {}
@@ -54,15 +57,15 @@ public final class CodegenUtils {
         if (i instanceof AppelFonctionInstr afi) return contientLireExpr(afi.getAppel());
 
         // Contrôle
-        if (i instanceof main.java.parseur.ast.controle.Si s) {
+        if (i instanceof Si s) {
             return contientLireExpr(s.getCondition())
                     || contientLireInstr(s.getAlorsInstr())
                     || (s.getSinonInstr() != null && contientLireInstr(s.getSinonInstr()));
         }
-        if (i instanceof main.java.parseur.ast.controle.TantQue tq) {
+        if (i instanceof TantQue tq) {
             return contientLireExpr(tq.getCondition()) || contientLireInstr(tq.getCorps());
         }
-        if (i instanceof main.java.parseur.ast.controle.Pour p) {
+        if (i instanceof Pour p) {
             return contientLireExpr(p.getDebut())
                     || contientLireExpr(p.getFin())
                     || contientLireExpr(p.getPas())

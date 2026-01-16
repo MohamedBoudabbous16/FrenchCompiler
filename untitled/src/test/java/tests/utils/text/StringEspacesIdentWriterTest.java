@@ -1,4 +1,4 @@
-package test.java.tests.utils.text;
+package tests.utils.text;
 
 
 

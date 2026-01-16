@@ -1,4 +1,4 @@
-package main.java.optimizer;
+package java.optimizer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

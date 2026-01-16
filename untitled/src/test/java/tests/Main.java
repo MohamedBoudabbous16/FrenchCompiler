@@ -1,9 +1,9 @@
-package test.java.tests;
+package tests;
 
-import main.java.parseur.AnaSynt;
-import main.java.parseur.ast.Programme;
-import main.java.semantic.AnalyseSemantique;
-import main.java.semantic.ErreurSemantique;
+import java.parseur.AnaSynt;
+import java.parseur.ast.Programme;
+import java.semantic.AnalyseSemantique;
+import java.semantic.ErreurSemantique;
 import utils.diag.DiagnosticCollector;
 
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package main.java.lexeur;
+package java.lexeur;
 
 // ici j'énumère les types de tokens
 public enum TypeJeton {

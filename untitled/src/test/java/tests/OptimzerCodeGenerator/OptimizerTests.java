@@ -1,7 +1,9 @@
-package test.java.tests.OptimzerCodeGenerator;
-import main.java.optimizer.Optimizer;
+package tests.OptimzerCodeGenerator;
+import java.optimizer.Optimizer;
+import java.parseur.ast.Programme;
+
 import org.junit.jupiter.api.Test;
-import test.java.tests.TestTools;
+import tests.TestTools;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,7 +49,7 @@ public class OptimizerTests {
     void optimizer_smoke_dead_code() {
         Object programme = TestTools.parseProgramme(SRC_DEAD_CODE);
         Optimizer opt = new Optimizer();
-        opt.optimize((main.java.parseur.ast.Programme) programme);
+        opt.optimize((Programme) programme);
         assertNotNull(programme);
     }
 
@@ -55,7 +57,7 @@ public class OptimizerTests {
     void optimizer_smoke_si_true() {
         Object programme = TestTools.parseProgramme(SRC_IF_TRUE);
         Optimizer opt = new Optimizer();
-        opt.optimize((main.java.parseur.ast.Programme) programme);
+        opt.optimize((Programme) programme);
         assertNotNull(programme);
     }
 
@@ -63,7 +65,7 @@ public class OptimizerTests {
     void optimizer_smoke_tantque_false() {
         Object programme = TestTools.parseProgramme(SRC_TANTQUE_FALSE);
         Optimizer opt = new Optimizer();
-        opt.optimize((main.java.parseur.ast.Programme) programme);
+        opt.optimize((Programme) programme);
         assertNotNull(programme);
     }
 
@@ -71,7 +73,7 @@ public class OptimizerTests {
     void optimizer_smoke_const_fold() {
         Object programme = TestTools.parseProgramme(SRC_CONST_FOLD);
         Optimizer opt = new Optimizer();
-        opt.optimize((main.java.parseur.ast.Programme) programme);
+        opt.optimize((Programme) programme);
         assertNotNull(programme);
     }
 }

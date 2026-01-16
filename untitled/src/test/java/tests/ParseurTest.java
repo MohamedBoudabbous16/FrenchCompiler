@@ -1,9 +1,11 @@
-package test.java.tests;
+package tests;
 import org.junit.jupiter.api.Test;
-import main.java.parseur.AnaSynt;
-import main.java.parseur.ast.Programme;
+import java.parseur.AnaSynt;
+import java.parseur.ast.Programme;
+import tests.TestTools;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static tests.TestTools.parseProgramme;
 
 /**
  * Tests unitaires du main.java.parseur : s'assure qu'un petit programme se parse
@@ -13,7 +15,7 @@ public class ParseurTest {
 
     @Test
     void parser_sanity() {
-        Object programme = TestTools.parseProgramme("""
+        Object programme = parseProgramme("""
         fonction main() {
           retourne 0;
         }
@@ -34,7 +36,7 @@ public class ParseurTest {
               retourne z;
             }
             """;
-        Programme programme = AnaSynt.analyser(source);
+        Programme programme = AnaSynt.analyser(source, new utils.diag.DiagnosticCollector());
         assertNotNull(programme);
         // On doit obtenir une seule classe "ProgrammePrincipal" avec 2 fonctions
         assertEquals(1, programme.getClasses().size());

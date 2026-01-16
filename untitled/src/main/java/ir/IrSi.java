@@ -1,4 +1,4 @@
-package main.java.ir;
+package java.ir;
 
 import java.util.Objects;
 

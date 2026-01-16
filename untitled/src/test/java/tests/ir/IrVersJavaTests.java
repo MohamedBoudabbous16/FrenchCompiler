@@ -1,6 +1,6 @@
-package test.java.tests.ir;
-import main.java.ir.*;
-import main.java.ir.convertisseur.IrVersJava;
+package tests.ir;
+import java.ir.*;
+import java.ir.convertisseur.IrVersJava;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

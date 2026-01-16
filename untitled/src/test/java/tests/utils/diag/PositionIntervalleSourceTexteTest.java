@@ -1,4 +1,4 @@
-package  test.java.tests.utils.diag;
+package tests.utils.diag;
 
 
 import org.junit.jupiter.api.Test;

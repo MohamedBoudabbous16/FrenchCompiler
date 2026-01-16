@@ -1,22 +1,23 @@
-package test.java.tests.parseur.Test;
+package tests.parseur.Test;
 
-import main.java.lexeur.Jeton;
-import main.java.lexeur.Lexeur;
-import main.java.parseur.AnaSynt;
-import main.java.parseur.ast.*;
+import java.lexeur.Jeton;
+import java.lexeur.Lexeur;
+import java.parseur.AnaSynt;
+import java.parseur.ast.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.semantic.AnalyseSemantique;
 import java.util.List;
+import utils.diag.*;
+import utils.diag.DiagnosticCollector;
+import utils.diag.Position;
+
+import static java.lexeur.TypeJeton.Fonction;
 
 public class TestGeneration {
 
     public static void main(String[] args) {
-
-        // =========================
-        // TEST LEXEUR (minimal)
-        // =========================
-
 
         String source = """
                 fonction main() {
@@ -27,37 +28,34 @@ public class TestGeneration {
                 }
                 """;
 
-        Lexeur lexeur = new Lexeur(source);
+        DiagnosticCollector collecteur = new DiagnosticCollector();
+        Lexeur lexeur = new Lexeur(source, collecteur);
         List<Jeton> jetons = lexeur.analyser();
 
         System.out.println("===== JETONS PRODUITS PAR LE LEXEUR =====");
         for (Jeton j : jetons) {
             System.out.println(j.getType() + " -> '" + j.getValeur() + "' (ligne " + j.getLigne() + ", col " + j.getColonne() + ")");
         }
-        var prog = AnaSynt.analyser(source);
-        var sem  = new main.java.semantic.AnalyseSemantique();
-        sem.verifier(prog);   // ⬅️ LIGNE MANQUANTE
+
+        var prog = AnaSynt.analyser(source, collecteur);
+        var sem  = new AnalyseSemantique(collecteur);
+        sem.verifier(prog);
         System.out.println(prog.genJava(sem));
 
+        // ✅ Position neutre pour les tests
+        Position pos = new Position("test", 1, 1);
 
-        // =========================
-        // TON TEST AST (existant)
-        // =========================
+
         Fonction somme = new Fonction(
-                "somme",
-                List.of("a", "b"),
-                new Bloc(List.of(
-                        new Retourne(
-                                new ExpressionBinaire(
-                                        new Identifiant("a"),
-                                        "+",
-                                        new Identifiant("b")
-                                )
-                        )
-                ))
+                pos, "somme", List.of("a", "b"),
+                new Bloc(pos, List.of(new Retourne(pos, new ExpressionBinaire(pos, new Identifiant(pos, "a"),
+                                "+", new Identifiant(pos, "b"))))
+                )
         );
 
+
         Classe calcul = new Classe(
+                pos,
                 "Calcul",
                 List.of("Utilitaire"),
                 List.of("age", "nom"),
@@ -68,7 +66,6 @@ public class TestGeneration {
 
         String codeJava = calcul.genJava(sem);
 
-        // === Écriture dans un fichier Calcul.java ===
         try (FileWriter writer = new FileWriter("Calcul.java")) {
             writer.write(codeJava);
             System.out.println("✅ Fichier Calcul.java généré avec succès !");

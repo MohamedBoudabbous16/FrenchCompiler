@@ -1,11 +1,12 @@
-package test.java.tests;
+package tests;
 
 import org.junit.jupiter.api.Test;
 //include <assert.h>
-import main.java.parseur.AnaSynt;
-import main.java.parseur.ast.Programme;
-import main.java.semantic.AnalyseSemantique;
-import main.java.semantic.ErreurSemantique;
+import java.parseur.AnaSynt;
+import java.parseur.ast.Programme;
+import java.semantic.AnalyseSemantique;
+import java.semantic.ErreurSemantique;
+import utils.diag.DiagnosticCollector;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,8 +23,8 @@ public class SemantiqueTest {
               x = vide();
             }
             """;
-        Programme programme = AnaSynt.analyser(source);
-        AnalyseSemantique sem = new AnalyseSemantique();
+        Programme programme = AnaSynt.analyser(source, new DiagnosticCollector());
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
         assertThrows(ErreurSemantique.class,
                 () -> sem.verifier(programme),
                 "Affecter une valeur VIDE devrait déclencher une ErreurSemantique");
@@ -36,8 +37,8 @@ public class SemantiqueTest {
               retourne vide();
             }
             """;
-        Programme programme = AnaSynt.analyser(source);
-        AnalyseSemantique sem = new AnalyseSemantique();
+        Programme programme = AnaSynt.analyser(source, new DiagnosticCollector());
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
         assertThrows(ErreurSemantique.class,
                 () -> sem.verifier(programme),
                 "Retourner vide() dans main() doit être interdit");
@@ -54,8 +55,8 @@ public class SemantiqueTest {
               retourne x;
             }
             """;
-        Programme programme = AnaSynt.analyser(source);
-        AnalyseSemantique sem = new AnalyseSemantique();
+        Programme programme = AnaSynt.analyser(source, new DiagnosticCollector());
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
         assertThrows(ErreurSemantique.class,
                 () -> sem.verifier(programme),
                 "Une mauvaise arité doit provoquer une ErreurSemantique");

@@ -1,8 +1,10 @@
-package test.java.tests.OptimzerCodeGenerator;
+package tests.OptimzerCodeGenerator;
 
-import main.java.semantic.AnalyseSemantique;
+import java.parseur.ast.Programme;
+import java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
-import test.java.tests.TestTools;
+import tests.TestTools;
+import utils.diag.DiagnosticCollector;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,10 +39,10 @@ public class DiagnosticCodegenTests2 {
         int nbLire = countNodes(programme, "main.java.parseur.ast.Lire");
         int nbAffiche = countNodes(programme, "main.java.parseur.ast.Affiche");
 
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
 
-        String astJava = ((main.java.parseur.ast.Programme) programme).genJava(sem);
+        String astJava = ((Programme) programme).genJava(sem);
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
         String genJava = extractGeneratedJava(gen, programme, sem);
@@ -75,15 +77,15 @@ public class DiagnosticCodegenTests2 {
         Object programme = TestTools.parseProgramme(SRC_AFFICHE_MULTI);
         assertNotNull(programme);
 
-        AnalyseSemantique sem = new AnalyseSemantique();
-        sem.verifier((main.java.parseur.ast.Programme) programme);
+        AnalyseSemantique sem = new AnalyseSemantique(new DiagnosticCollector());
+        sem.verifier((Programme) programme);
 
         List<Object> afficheNodes = collectNodes(programme, "main.java.parseur.ast.Affiche");
         int nbAffiche = afficheNodes.size();
         int maxArgs = 0;
         for (Object a : afficheNodes) maxArgs = Math.max(maxArgs, readAfficheArgsSize(a));
 
-        String astJava = ((main.java.parseur.ast.Programme) programme).genJava(sem);
+        String astJava = ((Programme) programme).genJava(sem);
         int astPrintCount = countPrint(astJava);
 
         Object gen = TestTools.newInstance(TestTools.mustClass("main.java.codegenerator.JavaGenerator"));
@@ -135,7 +137,7 @@ public class DiagnosticCodegenTests2 {
 
     private static Object invokeGenerate(Object gen, Object programme) {
         try {
-            Method m = gen.getClass().getMethod("generate", main.java.parseur.ast.Programme.class);
+            Method m = gen.getClass().getMethod("generate", Programme.class);
             return m.invoke(gen, programme);
         } catch (Exception e) {
             throw new AssertionError("DIAG: impossible d'appeler JavaGenerator.generate(Programme). " + e);

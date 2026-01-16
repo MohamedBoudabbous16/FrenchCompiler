@@ -1,4 +1,4 @@
-package main.java.lexeur;
+package java.lexeur;
 
 
 /**

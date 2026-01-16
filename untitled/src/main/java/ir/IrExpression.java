@@ -1,4 +1,4 @@
-package main.java.ir;
+package java.ir;
 
 /**
  * Expression IR (sealed) : littéraux, variables, binaire, appel, lire().

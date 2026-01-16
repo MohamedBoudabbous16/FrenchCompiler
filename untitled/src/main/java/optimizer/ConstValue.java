@@ -1,4 +1,4 @@
-package main.java.optimizer;
+package java.optimizer;
 
 final class ConstValue {
 

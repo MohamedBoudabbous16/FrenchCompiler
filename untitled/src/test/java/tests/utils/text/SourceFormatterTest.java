@@ -1,8 +1,8 @@
-package test.java.tests.utils.text;
+package tests.utils.text;
 
 
 
-import org.junit.Test;
+//import org.junit.Test;
 import org.junit.jupiter.api.Test;
 import utils.diag.Intervalle;
 import utils.diag.Position;

@@ -1,4 +1,4 @@
-package main.java.ir;
+package java.ir;
 
 /**
  * Racine de tous les nœuds de l’IR.

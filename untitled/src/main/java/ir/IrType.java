@@ -1,4 +1,4 @@
-package java.ir;
+package main.java.ir;
 
 /**
  * Types simples pour l'IR (intermediate representation).

@@ -1,4 +1,4 @@
-package java.ir;
+package main.java.ir;
 
 /**
  * Instruction IR (sealed) : on garde des constructs proches de ton AST,

@@ -1,4 +1,4 @@
-package java.ir;
+package main.java.ir;
 
 public record IrConstChar(char valeur) implements IrExpression {
     public char value() { return valeur; }

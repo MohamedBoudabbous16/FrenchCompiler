@@ -1,9 +1,9 @@
-package java.codegenerator;
+package main.java.codegenerator;
 
-import java.parseur.ast.*;
-import java.parseur.ast.controle.Pour;
-import java.parseur.ast.controle.Si;
-import java.parseur.ast.controle.TantQue;
+import main.java.parseur.ast.*;
+import main.java.parseur.ast.controle.Pour;
+import main.java.parseur.ast.controle.Si;
+import main.java.parseur.ast.controle.TantQue;
 
 import java.util.List;
 

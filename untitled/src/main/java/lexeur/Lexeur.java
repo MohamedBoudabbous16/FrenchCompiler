@@ -1,4 +1,4 @@
-package java.lexeur;
+package main.java.lexeur;
 import utils.diag.DiagnosticCollector;
 import utils.diag.Position;
 

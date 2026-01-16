@@ -1,0 +1,48 @@
+-------------------------------------------------------------------------------
+Test set: tests.OptimzerCodeGenerator.OptimizerTests
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 0.001 s <<< FAILURE! -- in tests.OptimzerCodeGenerator.OptimizerTests
+tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_si_true -- Time elapsed: 0 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@306f16f3]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_si_true(OptimizerTests.java:58)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_dead_code -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@22e357dc]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_dead_code(OptimizerTests.java:50)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_const_fold -- Time elapsed: 0 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@10163d6]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_const_fold(OptimizerTests.java:74)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_tantque_false -- Time elapsed: 0 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@15bbf42f]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.OptimizerTests.optimizer_smoke_tantque_false(OptimizerTests.java:66)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+

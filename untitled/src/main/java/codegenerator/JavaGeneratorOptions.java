@@ -1,6 +1,6 @@
-package java.codegenerator;
+package main.java.codegenerator;
 
-import java.semantic.AnalyseSemantique;
+import main.java.semantic.AnalyseSemantique;
 
 public class JavaGeneratorOptions {
 

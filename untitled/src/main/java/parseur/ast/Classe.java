@@ -1,7 +1,7 @@
-package java.parseur.ast;
+package main.java.parseur.ast;
 
-import java.semantic.AnalyseSemantique;
-import java.semantic.TypeSimple;
+import main.java.semantic.AnalyseSemantique;
+import main.java.semantic.TypeSimple;
 import utils.diag.Position;
 
 import java.util.List;

@@ -1,12 +1,12 @@
-package java.parseur;
+package main.java.parseur;
 
-import java.lexeur.Jeton;
-import java.lexeur.Lexeur;
-import java.lexeur.TypeJeton;
-import java.parseur.ast.*;
-import java.parseur.ast.controle.Pour;
-import java.parseur.ast.controle.Si;
-import java.parseur.ast.controle.TantQue;
+import main.java.lexeur.Jeton;
+import main.java.lexeur.Lexeur;
+import main.java.lexeur.TypeJeton;
+import main.java.parseur.ast.*;
+import main.java.parseur.ast.controle.Pour;
+import main.java.parseur.ast.controle.Si;
+import main.java.parseur.ast.controle.TantQue;
 import utils.diag.DiagnosticCollector;
 import utils.diag.Position;
 

@@ -1,6 +1,6 @@
-package java.parseur.ast.controle;
-import java.parseur.ast.*;
-import java.semantic.AnalyseSemantique;
+package main.java.parseur.ast.controle;
+import main.java.parseur.ast.*;
+import main.java.semantic.AnalyseSemantique;
 import utils.diag.Position;
 
 public class Si extends Instruction {

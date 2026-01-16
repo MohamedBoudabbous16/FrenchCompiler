@@ -1,0 +1,26 @@
+-------------------------------------------------------------------------------
+Test set: tests.OptimzerCodeGenerator.CodeGeneratorTests
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.001 s <<< FAILURE! -- in tests.OptimzerCodeGenerator.CodeGeneratorTests
+tests.OptimzerCodeGenerator.CodeGeneratorTests.codegenerator_genere_scanner_pour_lire -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@a2431d0]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.CodeGeneratorTests.codegenerator_genere_scanner_pour_lire(CodeGeneratorTests.java:33)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+
+tests.OptimzerCodeGenerator.CodeGeneratorTests.codegenerator_affiche_multi_arguments_print_plusieurs_fois -- Time elapsed: 0 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@1a4013]
+	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
+	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)
+	at tests.TestTools.newInstance(TestTools.java:209)
+	at tests.TestTools.parseProgramme(TestTools.java:311)
+	at tests.OptimzerCodeGenerator.CodeGeneratorTests.codegenerator_affiche_multi_arguments_print_plusieurs_fois(CodeGeneratorTests.java:63)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
+

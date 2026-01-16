@@ -1,4 +1,4 @@
-package java.parseur.ast;
+package main.java.parseur.ast;
 
 import utils.diag.Position;
 

@@ -1,6 +1,6 @@
-package java.optimizer;
+package main.java.optimizer;
 
-import java.parseur.ast.*;
+import main.java.parseur.ast.*;
 
 final class ConstEval {
 

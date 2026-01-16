@@ -1,4 +1,4 @@
-package java.semantic;
+package main.java.semantic;
 
 public class ErreurSemantique extends RuntimeException {
     public ErreurSemantique(String message) {

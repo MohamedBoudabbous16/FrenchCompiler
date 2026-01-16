@@ -1,7 +1,7 @@
 package tests.OptimzerCodeGenerator;
 
-import java.parseur.ast.Programme;
-import java.semantic.AnalyseSemantique;
+import main.java.parseur.ast.Programme;
+import main.java.semantic.AnalyseSemantique;
 import org.junit.jupiter.api.Test;
 import tests.TestTools;
 import utils.diag.DiagnosticCollector;

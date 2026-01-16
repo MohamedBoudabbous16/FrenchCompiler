@@ -1,4 +1,4 @@
-package java.ir;
+package main.java.ir;
 
 /**
  * Retourne expr; (expr peut être null si la fonction est void).

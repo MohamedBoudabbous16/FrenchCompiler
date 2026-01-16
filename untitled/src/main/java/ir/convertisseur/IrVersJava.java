@@ -1,8 +1,8 @@
-package java.ir.convertisseur;
+package main.java.ir.convertisseur;
 
-import java.ir.*;
-import java.semantic.AnalyseSemantique;
-import java.semantic.TypeSimple;
+import main.java.ir.*;
+import main.java.semantic.AnalyseSemantique;
+import main.java.semantic.TypeSimple;
 
 import java.util.*;
 

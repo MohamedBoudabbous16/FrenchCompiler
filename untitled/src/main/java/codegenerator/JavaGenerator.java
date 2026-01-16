@@ -1,10 +1,10 @@
-package java.codegenerator;
+package main.java.codegenerator;
 
-import java.parseur.ast.Programme;
-import java.semantic.AnalyseSemantique;
+import main.java.parseur.ast.Programme;
+import main.java.semantic.AnalyseSemantique;
 import utils.diag.DiagnosticCollector;
 
-import java.codegenerator.JavaGeneratorOptions;
+import main.java.codegenerator.JavaGeneratorOptions;
 import java.util.Objects;
 
 /**

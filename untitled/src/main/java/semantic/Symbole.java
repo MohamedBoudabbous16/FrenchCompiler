@@ -1,4 +1,4 @@
-package java.semantic;
+package main.java.semantic;
 
 public class Symbole {
     private final String nom;

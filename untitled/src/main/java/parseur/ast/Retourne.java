@@ -1,6 +1,6 @@
-package java.parseur.ast;
+package main.java.parseur.ast;
 
-import java.semantic.AnalyseSemantique;
+import main.java.semantic.AnalyseSemantique;
 import utils.diag.Position;
 
 public class Retourne extends Instruction{

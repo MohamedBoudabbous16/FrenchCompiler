@@ -1,6 +1,6 @@
 package tests.OptimzerCodeGenerator;
-import java.optimizer.Optimizer;
-import java.parseur.ast.Programme;
+import main.java.optimizer.Optimizer;
+import main.java.parseur.ast.Programme;
 
 import org.junit.jupiter.api.Test;
 import tests.TestTools;

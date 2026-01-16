@@ -1,7 +1,7 @@
 package tests;
 import org.junit.jupiter.api.Test;
-import java.parseur.AnaSynt;
-import java.parseur.ast.Programme;
+import main.java.parseur.AnaSynt;
+import main.java.parseur.ast.Programme;
 import tests.TestTools;
 
 import static org.junit.jupiter.api.Assertions.*;

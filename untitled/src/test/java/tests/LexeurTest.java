@@ -1,8 +1,8 @@
 package tests;
 
-import java.lexeur.Jeton;
-import java.lexeur.Lexeur;
-import java.lexeur.TypeJeton;
+import main.java.lexeur.Jeton;
+import main.java.lexeur.Lexeur;
+import main.java.lexeur.TypeJeton;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

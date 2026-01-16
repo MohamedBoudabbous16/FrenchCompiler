@@ -1,12 +1,12 @@
-package java.ir.convertisseur;
+package main.java.ir.convertisseur;
 
-import java.ir.*;
-import java.parseur.ast.*;
-import java.parseur.ast.controle.Pour;
-import java.parseur.ast.controle.Si;
-import java.parseur.ast.controle.TantQue;
-import java.semantic.AnalyseSemantique;
-import java.semantic.TypeSimple;
+import main.java.ir.*;
+import main.java.parseur.ast.*;
+import main.java.parseur.ast.controle.Pour;
+import main.java.parseur.ast.controle.Si;
+import main.java.parseur.ast.controle.TantQue;
+import main.java.semantic.AnalyseSemantique;
+import main.java.semantic.TypeSimple;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

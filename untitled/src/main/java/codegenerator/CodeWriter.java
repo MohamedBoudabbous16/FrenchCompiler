@@ -1,4 +1,4 @@
-package java.codegenerator;
+package main.java.codegenerator;
 
 public class CodeWriter {
     private final StringBuilder sb = new StringBuilder();

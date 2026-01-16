@@ -1,19 +1,19 @@
 package tests.parseur.Test;
 
-import java.lexeur.Jeton;
-import java.lexeur.Lexeur;
-import java.parseur.AnaSynt;
-import java.parseur.ast.*;
+import main.java.lexeur.Jeton;
+import main.java.lexeur.Lexeur;
+import main.java.parseur.AnaSynt;
+import main.java.parseur.ast.*;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.semantic.AnalyseSemantique;
+import main.java.semantic.AnalyseSemantique;
 import java.util.List;
 import utils.diag.*;
 import utils.diag.DiagnosticCollector;
 import utils.diag.Position;
 
-import static java.lexeur.TypeJeton.Fonction;
+import static main.java.lexeur.TypeJeton.Fonction;
 
 public class TestGeneration {
 

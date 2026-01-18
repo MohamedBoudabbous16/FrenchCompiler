@@ -58,6 +58,10 @@ public class AnalyseSemantique {
                 verifierFonction(f);
             }
         }
+        //on leve a la fin si des erreurs existent:
+        if (diags.aDesErreurs()) {
+            throw new ErreurSemantique(diags.formatTous());
+        }
     }
 
 

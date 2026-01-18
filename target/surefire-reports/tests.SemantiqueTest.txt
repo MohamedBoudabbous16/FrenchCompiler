@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 Test set: tests.SemantiqueTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.002 s <<< FAILURE! -- in tests.SemantiqueTest
+Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.003 s <<< FAILURE! -- in tests.SemantiqueTest
 tests.SemantiqueTest.testArityMismatch -- Time elapsed: 0.001 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: Une mauvaise arité doit provoquer une ErreurSemantique ==> Expected main.java.semantic.ErreurSemantique to be thrown, but nothing was thrown.
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
@@ -24,7 +24,7 @@ org.opentest4j.AssertionFailedError: Affecter une valeur VIDE devrait déclenche
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1597)
 
-tests.SemantiqueTest.testRetourVideNonVoid -- Time elapsed: 0 s <<< FAILURE!
+tests.SemantiqueTest.testRetourVideNonVoid -- Time elapsed: 0.001 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: Retourner vide() dans main() doit être interdit ==> Expected main.java.semantic.ErreurSemantique to be thrown, but nothing was thrown.
 	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
 	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:73)

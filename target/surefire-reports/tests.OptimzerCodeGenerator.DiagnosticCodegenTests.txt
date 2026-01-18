@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: tests.OptimzerCodeGenerator.DiagnosticCodegenTests
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.002 s <<< FAILURE! -- in tests.OptimzerCodeGenerator.DiagnosticCodegenTests
-tests.OptimzerCodeGenerator.DiagnosticCodegenTests.diag_lire_scanner_ou_runtime_ou_ast -- Time elapsed: 0.001 s <<< FAILURE!
+Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.003 s <<< FAILURE! -- in tests.OptimzerCodeGenerator.DiagnosticCodegenTests
+tests.OptimzerCodeGenerator.DiagnosticCodegenTests.diag_lire_scanner_ou_runtime_ou_ast -- Time elapsed: 0.002 s <<< FAILURE!
 org.opentest4j.AssertionFailedError: Aucun constructeur compatible pour main.java.lexeur.Lexeur avec args=[java.io.StringReader@649bec2e]
 	at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:38)
 	at org.junit.jupiter.api.Assertions.fail(Assertions.java:134)

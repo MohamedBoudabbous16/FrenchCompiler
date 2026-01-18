@@ -12,12 +12,16 @@ import java.util.Objects;
 public record IrProgramme(String nomClasse, List<IrFonction> fonctions) implements IrNoeud {
 
     public IrProgramme {
-        // normalisation / defaults
-        nomClasse = (nomClasse == null || nomClasse.isBlank()) ? "ProgrammePrincipal" : nomClasse;
-        fonctions = (fonctions == null) ? List.of() : List.copyOf(fonctions);
-
-        // validations
+        // Refuser les nulls (exigé par les tests)
         Objects.requireNonNull(nomClasse, "nomClasse");
         Objects.requireNonNull(fonctions, "fonctions");
+
+        // Normalisation optionnelle (mais sans toucher aux nulls)
+        if (nomClasse.isBlank()) {
+            nomClasse = "ProgrammePrincipal";
+        }
+
+        // Copie défensive
+        fonctions = List.copyOf(fonctions);
     }
 }

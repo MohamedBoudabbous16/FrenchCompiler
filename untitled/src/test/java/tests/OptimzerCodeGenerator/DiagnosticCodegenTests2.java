@@ -2,6 +2,7 @@ package tests.OptimzerCodeGenerator;
 
 import main.java.parseur.ast.Programme;
 import main.java.semantic.AnalyseSemantique;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import tests.TestTools;
 import utils.diag.DiagnosticCollector;
@@ -12,6 +13,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 //Tests obsolete pour le moment: ils ont servi juste a diagnostiquer
+@Disabled("Test de diagnostic interne (obsolete)")
 public class DiagnosticCodegenTests2 {
 
     private static final String SRC_LIRE = """

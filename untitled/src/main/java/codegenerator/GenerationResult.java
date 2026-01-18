@@ -13,4 +13,10 @@ public class GenerationResult {
 
     public String getJavaSource() { return javaSource; }
     public AnalyseSemantique getSemantic() { return semantic; }
+    public String getSource() { return javaSource; }
+
+
+
+    @Override
+    public String toString() { return javaSource; }
 }

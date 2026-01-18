@@ -4,24 +4,10 @@ import main.java.parseur.ast.Programme;
 import main.java.semantic.AnalyseSemantique;
 import utils.diag.DiagnosticCollector;
 
-import main.java.codegenerator.JavaGeneratorOptions;
 import java.util.Objects;
 
-/**
- * Générateur Java de haut niveau.
- *
- * Cette classe encapsule la logique de génération du code Java à partir
- * d’un programme AST et d’une analyse sémantique. Elle peut être
- * étendue ultérieurement pour gérer différents styles de génération.
- */
 public class JavaGenerator {
 
-    /**
-     * Génère le code Java complet pour un programme donné.
-     *
-     * @param programme l’AST du programme à compiler
-     * @return une chaîne contenant le code source Java correspondant
-     */
     public GenerationResult generate(Programme programme) {
         return generate(programme, JavaGeneratorOptions.defaults());
     }
@@ -30,15 +16,13 @@ public class JavaGenerator {
         Objects.requireNonNull(programme, "programme");
         Objects.requireNonNull(options, "options");
 
-        // 1) Analyse sémantique (si tu veux que le générateur la fasse)
         AnalyseSemantique sem = options.isRunSemanticAnalysis()
                 ? runSemantic(programme)
                 : options.getSemanticOrThrow();
 
-        // 2) Génération via ton AST existant
         String source = programme.genJava(sem);
 
-        // 3) Runtime (Scanner / lire()) si besoin
+        // (A) runtime pour lire()
         boolean needsLireRuntime = options.isForceLireRuntime()
                 || RuntimeSupport.programmeUsesLire(programme);
 
@@ -52,8 +36,16 @@ public class JavaGenerator {
             source = ImportManager.ensureImport(source, "java.util.Scanner");
         }
 
-        // 4) (Optionnel) packager + nom de classe (si tu veux plus tard)
-        // Ici on laisse ton Programme.genJava gérer le nom de classe.
+        // (B) runtime pour casts/conversions (asInt/asBool/...)
+        boolean needsTypeRuntime =
+                source.contains("RuntimeSupport.asInt(") ||
+                        source.contains("RuntimeSupport.asBool(") ||
+                        source.contains("RuntimeSupport.asString(") ||
+                        source.contains("RuntimeSupport.asChar(");
+
+        if (needsTypeRuntime && !source.contains("class RuntimeSupport")) {
+            source = SourcePatcher.injectBeforeLastBrace(source, typeRuntimeChunk());
+        }
 
         return new GenerationResult(source, sem);
     }
@@ -63,5 +55,39 @@ public class JavaGenerator {
         AnalyseSemantique sem = new AnalyseSemantique(diags);
         sem.verifier(programme);
         return sem;
+    }
+
+    // Classe runtime injectée dans ProgrammePrincipal (Java généré)
+    private String typeRuntimeChunk() {
+        return """
+                
+                public static final class RuntimeSupport {
+                    private RuntimeSupport() {}
+
+                    public static int asInt(Object v) {
+                        if (v instanceof Integer i) return i;
+                        if (v instanceof Character c) return (int) c;
+                        if (v instanceof Boolean b) return b ? 1 : 0;
+                        throw new RuntimeException("Valeur non convertible en int: " + v);
+                    }
+
+                    public static boolean asBool(Object v) {
+                        if (v instanceof Boolean b) return b;
+                        if (v instanceof Integer i) return i != 0;
+                        throw new RuntimeException("Valeur non convertible en boolean: " + v);
+                    }
+
+                    public static String asString(Object v) {
+                        if (v == null) return "null";
+                        return v.toString();
+                    }
+
+                    public static char asChar(Object v) {
+                        if (v instanceof Character c) return c;
+                        if (v instanceof Integer i) return (char) (int) i;
+                        throw new RuntimeException("Valeur non convertible en char: " + v);
+                    }
+                }
+                """;
     }
 }

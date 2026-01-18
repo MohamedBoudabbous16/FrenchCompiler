@@ -14,6 +14,7 @@ main/java/semantic/AnalyseSemantique.class
 main/java/ir/IrLire.class
 main/java/ir/IrNoeud.class
 utils/diag/Diagnostic$Builder.class
+main/java/cli/CompilerCli$ParseResult.class
 utils/text/SourceFormatter$Options.class
 utils/diag/Position.class
 main/java/parseur/ast/AvecPosition.class
@@ -36,6 +37,7 @@ main/java/ir/IrExpression.class
 utils/diag/Intervalle.class
 main/java/parseur/AnaSynt$1.class
 utils/diag/SourceTexte.class
+main/java/cli/CompilerCli.class
 main/java/ir/IrTantQue.class
 main/java/codegenerator/JavaGeneratorOptions.class
 main/java/ir/IrInspecteur.class
@@ -62,6 +64,7 @@ main/java/semantic/ErreurSemantique.class
 main/java/optimizer/ConstValue.class
 utils/diag/Gravite.class
 main/java/ir/IrVariable.class
+main/java/cli/CompilerCli$SourceInput.class
 main/java/parseur/ast/Affiche.class
 main/java/ir/IrBinaire.class
 main/java/optimizer/AstReflection.class
@@ -91,9 +94,11 @@ main/java/parseur/ast/controle/Pour.class
 utils/lang/Result.class
 utils/text/StringEspaces.class
 main/java/optimizer/ConstEval$1.class
+main/java/cli/CompilerCli$Args.class
 utils/lang/Pair.class
 main/java/parseur/ast/Instruction.class
 main/java/ir/convertisseur/IrVersJava$1.class
+main/java/cli/CompilerCli$Exit.class
 main/java/lexeur/TypeJeton.class
 main/java/parseur/AnaSynt.class
 main/java/optimizer/DeadCodeEliminator.class

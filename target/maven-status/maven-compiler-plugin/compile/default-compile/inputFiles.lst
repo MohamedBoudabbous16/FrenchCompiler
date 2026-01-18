@@ -60,6 +60,7 @@
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrConstBool.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/codegenerator/RuntimeSupport.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrNoeud.java
+/Users/bouda/Desktop/compiler/untitled/src/main/java/cli/CompilerCli.java
 /Users/bouda/Desktop/compiler/untitled/src/utils/lang/Preconditions.java
 /Users/bouda/Desktop/compiler/untitled/src/utils/text/SourceFormatter.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/Fonction.java

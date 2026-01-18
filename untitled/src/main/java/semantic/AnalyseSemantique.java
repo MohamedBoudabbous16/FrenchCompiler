@@ -5,8 +5,12 @@ import main.java.parseur.ast.controle.Pour;
 import main.java.parseur.ast.controle.Si;
 import main.java.parseur.ast.controle.TantQue;
 import utils.diag.DiagnosticCollector;
-import main.java.parseur.ast;
+import main.java.parseur.ast.Expression;
+
+
 import utils.diag.Position;
+import main.java.semantic.TypeSimple;
+import  main.java.semantic.TableSymboles;
 
 import java.util.*;
 
@@ -20,6 +24,10 @@ import java.util.*;
 public class AnalyseSemantique {
 
     private final DiagnosticCollector diags;
+    // Types d'expressions (clé = objet AST exact)
+    private final Map<Expression, TypeSimple> typesExpr = new IdentityHashMap<>();
+
+
 
     public AnalyseSemantique(DiagnosticCollector diags) {
         this.diags = Objects.requireNonNull(diags, "diags");
@@ -69,6 +77,23 @@ public class AnalyseSemantique {
         return loopVarsParFonction.getOrDefault(nomFonction, Collections.emptySet());
     }
 
+    public List<TypeSimple> typesParamsDe(String nomFonction) {
+        SignatureFonction sig = signatures.get(nomFonction);
+        if (sig == null || sig.typesParams == null) return List.of();
+        return Collections.unmodifiableList(sig.typesParams);
+    }
+
+    /** Type statique inféré d'une expression (rempli pendant verifier()). */
+    public TypeSimple typeDe(Expression e) {
+        return typesExpr.getOrDefault(e, TypeSimple.INCONNU);
+    }
+
+    private TypeSimple record(Expression e, TypeSimple t) {
+        typesExpr.put(e, t);
+        return t;
+    }
+
+
     /* =========================
               VERIFIER
        ========================= */
@@ -80,6 +105,8 @@ public class AnalyseSemantique {
         signatures.clear();
         varsParFonction.clear();
         loopVarsParFonction.clear();
+        typesExpr.clear();
+
 
         // Builtins
         signatures.put("lire", new SignatureFonction(0, List.of(), TypeSimple.ENTIER));
@@ -322,38 +349,35 @@ public class AnalyseSemantique {
        ========================= */
 
     private TypeSimple typerExpression(Expression e) {
-        if (e instanceof Nombre)    return TypeSimple.ENTIER;
-        if (e instanceof Texte)     return TypeSimple.TEXTE;
-        if (e instanceof Caractere) return TypeSimple.CARACTERE;
-        if (e instanceof Lire)      return TypeSimple.ENTIER;
+        if (e instanceof Nombre)    return record(e, TypeSimple.ENTIER);
+        if (e instanceof Texte)     return record(e, TypeSimple.TEXTE);
+        if (e instanceof Caractere) return record(e, TypeSimple.CARACTERE);
+        if (e instanceof Lire)      return record(e, TypeSimple.ENTIER);
 
         if (e instanceof Identifiant id) {
-            if (estConstBool(id)) return TypeSimple.BOOLEEN;
+            if (estConstBool(id)) return record(e, TypeSimple.BOOLEEN);
 
             Symbole s = ts.resoudre(id.getNom());
             if (s == null) {
                 err("Identifiant '" + id.getNom() + "' utilisé avant affectation.", id.getPosition());
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
-            return s.getType();
+            return record(e, s.getType());
         }
 
         if (e instanceof AppelFonction a) {
             SignatureFonction sig = signatures.get(a.getNom());
             if (sig == null) {
                 err("Fonction inconnue : " + a.getNom(), a.getPosition());
-                // on analyse quand même les args
                 for (Expression arg : a.getArgs()) typerExpression(arg);
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
 
-            // arité
             if (a.getArgs().size() != sig.arite) {
                 err("Mauvaise arité pour '" + a.getNom() + "' : attendu "
                         + sig.arite + ", trouvé " + a.getArgs().size(), a.getPosition());
             }
 
-            // args + inférence types params
             int n = Math.min(a.getArgs().size(), sig.typesParams.size());
             for (int i = 0; i < a.getArgs().size(); i++) {
                 TypeSimple tArg = typerExpression(a.getArgs().get(i));
@@ -369,79 +393,73 @@ public class AnalyseSemantique {
                 }
             }
 
-            return sig.typeRetour;
+            return record(e, sig.typeRetour);
         }
 
         if (e instanceof ExpressionBinaire b) {
             String op = b.getop();
 
-            // on calcule types
             TypeSimple g = typerExpression(b.getGauche());
             TypeSimple d = typerExpression(b.getDroite());
 
-            // inférence contextuelle quand INCONNU
             g = infereSelonContexte(op, b.getGauche(), g, d);
             d = infereSelonContexte(op, b.getDroite(), d, g);
 
-            // règle par opérateur
+            // +
             if ("+".equals(op)) {
-                // concat si gauche TEXTE
                 if (g == TypeSimple.TEXTE) {
                     if (d == TypeSimple.VIDE) {
                         err("Concaténation invalide : TEXTE + VIDE.", b.getPosition());
-                        return TypeSimple.INCONNU;
+                        return record(e, TypeSimple.INCONNU);
                     }
-                    return TypeSimple.TEXTE;
+                    return record(e, TypeSimple.TEXTE);
                 }
-
-                // addition ENTIER + ENTIER
-                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return TypeSimple.ENTIER;
-
-                // si on ne sait pas encore (INCONNU), on n’explose pas tout
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return TypeSimple.INCONNU;
-
+                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return record(e, TypeSimple.ENTIER);
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.INCONNU);
                 err("Addition invalide : '" + g + " + " + d + "'.", b.getPosition());
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
 
+            // arith
             if ("-".equals(op) || "*".equals(op) || "/".equals(op) || "%".equals(op)) {
-                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return TypeSimple.ENTIER;
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return TypeSimple.INCONNU;
+                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return record(e, TypeSimple.ENTIER);
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.INCONNU);
                 err("Opérateur '" + op + "' attend ENTIER,ENTIER.", b.getPosition());
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
 
+            // compare
             if ("<".equals(op) || "<=".equals(op) || ">".equals(op) || ">=".equals(op)) {
-                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return TypeSimple.BOOLEEN;
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return TypeSimple.INCONNU;
+                if (g == TypeSimple.ENTIER && d == TypeSimple.ENTIER) return record(e, TypeSimple.BOOLEEN);
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.INCONNU);
                 err("Comparaison '" + op + "' attend ENTIER,ENTIER.", b.getPosition());
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
 
+            // == !=
             if ("==".equals(op) || "!=".equals(op)) {
-                // si un côté inconnu et l’autre connu -> on peut déjà inférer (fait par infereSelonContexte)
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return TypeSimple.BOOLEEN;
-
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.BOOLEEN);
                 if (g != d) {
                     err("Test '" + op + "' attend deux opérandes du même type.", b.getPosition());
-                    return TypeSimple.INCONNU;
+                    return record(e, TypeSimple.INCONNU);
                 }
-                return TypeSimple.BOOLEEN;
+                return record(e, TypeSimple.BOOLEEN);
             }
 
+            // logique
             if ("&&".equals(op) || "||".equals(op)) {
-                if (g == TypeSimple.BOOLEEN && d == TypeSimple.BOOLEEN) return TypeSimple.BOOLEEN;
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return TypeSimple.BOOLEEN; // tolérance
+                if (g == TypeSimple.BOOLEEN && d == TypeSimple.BOOLEEN) return record(e, TypeSimple.BOOLEEN);
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.BOOLEEN); // tolérance
                 err("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN.", b.getPosition());
-                return TypeSimple.INCONNU;
+                return record(e, TypeSimple.INCONNU);
             }
 
             err("Opérateur binaire inconnu : " + op, b.getPosition());
-            return TypeSimple.INCONNU;
+            return record(e, TypeSimple.INCONNU);
         }
 
         err("Expression non gérée : " + e.getClass().getSimpleName(), e.getPosition());
-        return TypeSimple.INCONNU;
+        return record(e, TypeSimple.INCONNU);
     }
 
     /* =========================

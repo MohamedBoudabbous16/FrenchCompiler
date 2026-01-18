@@ -75,6 +75,16 @@ public class AnaSynt {
         this.diags = diags;
     }
 
+    //Debug:
+    public AnaSynt(Lexeur lexeur) {
+        this(lexeur, new DiagnosticCollector());
+    }
+
+    public AnaSynt(Lexeur lexeur, DiagnosticCollector diags) {
+        this(lexeur.analyser(), diags);
+    }
+//fin debug
+
     /* ======================
      *  MÉTHODES PUBLIQUES
      * ====================== */
@@ -119,6 +129,20 @@ public class AnaSynt {
         classes.add(classePrincipale);
         return new Programme(p0, classes);
     }
+
+    //Debug:
+    public Programme parse() {
+        return analyserProgramme();
+    }
+
+    public Programme analyser() {
+        return analyserProgramme();
+    }
+    public static Programme parse(String source, DiagnosticCollector diags) {
+        return analyser(source, diags);
+    }
+
+//fin debug
 
     /**
      * Helper pratique si tu veux parser directement

@@ -1,6 +1,9 @@
 package main.java.lexeur;
 import utils.diag.DiagnosticCollector;
 import utils.diag.Position;
+import java.io.Reader;
+import java.io.IOException;
+import java.io.StringReader;
 
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +82,33 @@ public class Lexeur {
         this.ligne = 1;
         this.colonne = 1;
     }
+
+    //Debug: constructeur pour test:
+    public Lexeur(Reader reader, DiagnosticCollector diags) {
+        this(readAll(reader), diags);
+    }
+
+    public Lexeur(Reader reader) {
+        this(reader, new DiagnosticCollector());
+    }
+
+    public Lexeur(String texte) {
+        this(texte, new DiagnosticCollector());
+    }
+
+    private static String readAll(Reader r) {
+        if (r == null) return "";
+        try {
+            StringBuilder sb = new StringBuilder();
+            char[] buf = new char[4096];
+            int n;
+            while ((n = r.read(buf)) != -1) sb.append(buf, 0, n);
+            return sb.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+// Fin debug
 
     public List<Jeton> analyser() {
         /**

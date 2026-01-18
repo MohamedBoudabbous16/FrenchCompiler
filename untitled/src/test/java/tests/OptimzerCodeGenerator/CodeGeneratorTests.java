@@ -45,7 +45,7 @@ public class CodeGeneratorTests {
             result = TestTools.invokeBestPublicMethod(gen, programme);
         }
 
-        // ✅ IMPORTANT : GenerationResult expose getJavaSource() (pas getSource()).
+        //  IMPORTANT : GenerationResult expose getJavaSource() (pas getSource()).
         // TestTools.extractJavaSource(result) doit appeler getJavaSource() si présent.
         String javaCode = TestTools.extractJavaSource(result);
         assertNotNull(javaCode, "javaCode ne doit pas être null");
@@ -77,7 +77,7 @@ public class CodeGeneratorTests {
         String javaCode = TestTools.extractJavaSource(result);
         assertNotNull(javaCode, "javaCode ne doit pas être null");
 
-        // ✅ Multi-args => au moins 4 prints attendus pour ("x=", x, " y=", y)
+        //  Multi-args => au moins 4 prints attendus pour ("x=", x, " y=", y)
         int countPrint = countOccurrences(javaCode, "System.out.print(");
         assertTrue(
                 countPrint >= 4,

@@ -1,16 +1,21 @@
 package main.java.semantic;
 
 import main.java.parseur.ast.*;
+import main.java.parseur.ast.controle.*;
 import main.java.parseur.ast.controle.Pour;
 import main.java.parseur.ast.controle.Si;
 import main.java.parseur.ast.controle.TantQue;
-import utils.diag.DiagnosticCollector;
+//import utils.diag.DiagnosticCollector;
 import main.java.parseur.ast.Expression;
+import main.java.parseur.ast.ExpressionInstr;
+import  utils.diag.DiagnosticCollector;
+
 
 
 import utils.diag.Position;
 import main.java.semantic.TypeSimple;
 import  main.java.semantic.TableSymboles;
+
 
 import java.util.*;
 
@@ -340,8 +345,146 @@ public class AnalyseSemantique {
             verifierInstruction(p.getCorps());
             return;
         }
+        if (i instanceof ExpressionInstr ei) {
+            typerExpression(ei.getExpression());
+            return;
+        }
+
 
         err("Instruction non gérée : " + i.getClass().getSimpleName(), i.getPosition());
+    }
+
+        /* =========================
+        AFFECTATIONS EN EXPRESSION
+       ========================= */
+
+
+
+    private TypeSimple typeVarCourante(String nom) {
+        Symbole s = ts.resoudre(nom);
+        return (s == null) ? TypeSimple.INCONNU : s.getType();
+    }
+
+    /**
+     * Déclare ou met à jour le type d'une variable (comme dans Instruction Affectation),
+     * mais utilisable depuis les expressions (=, +=, ...).
+     *
+     * @return type final retenu pour la variable (ou INCONNU si pas déterminable)
+     */
+    private TypeSimple appliquerTypeVar(String nomVar, TypeSimple tVoulu, Position pos) {
+        if (tVoulu == TypeSimple.VIDE) {
+            err("Impossible d'affecter une expression de type VIDE.", pos);
+            return TypeSimple.INCONNU;
+        }
+
+        Symbole s = ts.resoudre(nomVar);
+
+        if (s == null) {
+            // déclaration implicite
+            ts.declarer(nomVar, tVoulu, false);
+            varsParFonction.get(fonctionCourante).put(nomVar, tVoulu);
+            return tVoulu;
+        }
+
+        TypeSimple tVar = s.getType();
+
+        if (tVar == TypeSimple.INCONNU && tVoulu != TypeSimple.INCONNU) {
+            s.setType(tVoulu);
+            varsParFonction.get(fonctionCourante).put(nomVar, tVoulu);
+            return tVoulu;
+        }
+
+        if (tVar != TypeSimple.INCONNU && tVoulu != TypeSimple.INCONNU && tVar != tVoulu) {
+            err("Affectation incompatible : " + tVar + " = " + tVoulu, pos);
+            return TypeSimple.INCONNU;
+        }
+
+        // si tVar connu, on le garde ; sinon on garde ce qu'on peut
+        return (tVar != TypeSimple.INCONNU) ? tVar : tVoulu;
+    }
+
+    /**
+     * Pour les affectations composées numériques (+= etc),
+     * on force ENTIER sur les deux côtés si possible.
+     */
+    private void forcerEntierSiPossible(Expression e, TypeSimple t) {
+        if (t != TypeSimple.INCONNU) return;
+        if (e instanceof Identifiant id && !estConstBool(id)) {
+            infererIdentifiant(id.getNom(), TypeSimple.ENTIER, id.getPosition());
+        }
+    }
+
+
+
+
+    private static boolean estOpAffectation(String op) {
+        return "=".equals(op) || "+=".equals(op) || "-=".equals(op)
+                || "*=".equals(op) || "/=".equals(op) || "%=".equals(op);
+    }
+
+    /**
+     * Applique une affectation (instruction ou expression) sur une variable.
+     * Retourne le type de l'expression d'affectation.
+     */
+    private TypeSimple appliquerAffectation(String nomVar, String op, Expression rhs, Position pos) {
+        TypeSimple tRhs = typerExpression(rhs);
+
+        if (tRhs == TypeSimple.VIDE) {
+            err("Impossible d'affecter une expression de type VIDE.", pos);
+            return TypeSimple.INCONNU;
+        }
+
+        Symbole s = ts.resoudre(nomVar);
+
+        // variable inexistante : autorisé seulement pour "=" (déclaration implicite)
+        if (s == null) {
+            if (!"=".equals(op)) {
+                err("Affectation composée '" + op + "' interdite sur variable non déclarée : " + nomVar, pos);
+                return TypeSimple.INCONNU;
+            }
+            ts.declarer(nomVar, tRhs, false);
+            varsParFonction.get(fonctionCourante).put(nomVar, tRhs);
+            return tRhs;
+        }
+
+        TypeSimple tVar = s.getType();
+
+        // Affectations composées : pour l’instant on force ENTIER (sauf += si tu veux concat plus tard)
+        if (!"=".equals(op)) {
+            // Force la variable ENTIER si inconnue
+            if (tVar == TypeSimple.INCONNU) {
+                s.setType(TypeSimple.ENTIER);
+                varsParFonction.get(fonctionCourante).put(nomVar, TypeSimple.ENTIER);
+                tVar = TypeSimple.ENTIER;
+            } else if (tVar != TypeSimple.ENTIER) {
+                err("Affectation composée '" + op + "' attend variable ENTIER, trouvé : " + tVar, pos);
+            }
+
+            // Force RHS ENTIER si ident inconnu
+            if (tRhs == TypeSimple.INCONNU && rhs instanceof Identifiant id && !estConstBool(id)) {
+                infererIdentifiant(id.getNom(), TypeSimple.ENTIER, id.getPosition());
+                tRhs = TypeSimple.ENTIER;
+            } else if (tRhs != TypeSimple.INCONNU && tRhs != TypeSimple.ENTIER) {
+                err("Affectation composée '" + op + "' attend RHS ENTIER, trouvé : " + tRhs, pos);
+            }
+
+            return TypeSimple.ENTIER;
+        }
+
+        // "=" : apprentissage classique
+        if (tVar == TypeSimple.INCONNU && tRhs != TypeSimple.INCONNU) {
+            s.setType(tRhs);
+            varsParFonction.get(fonctionCourante).put(nomVar, tRhs);
+            return tRhs;
+        }
+
+        if (tVar != TypeSimple.INCONNU && tRhs != TypeSimple.INCONNU && tVar != tRhs) {
+            err("Affectation incompatible : " + tVar + " = " + tRhs, pos);
+            return TypeSimple.INCONNU;
+        }
+
+        // Type de l'expression d'affectation = RHS si connu, sinon type var
+        return (tRhs != TypeSimple.INCONNU) ? tRhs : tVar;
     }
 
     /* =========================
@@ -399,6 +542,116 @@ public class AnalyseSemantique {
         if (e instanceof ExpressionBinaire b) {
             String op = b.getop();
 
+            // ✅ 1) AFFECTATIONS (=, +=, -=, *=, /=, %=)
+            if (estOpAffectation(op)) {
+
+                // LHS doit être un identifiant (l-value)
+                if (!(b.getGauche() instanceof Identifiant id) || estConstBool(id)) {
+                    err("Côté gauche d'une affectation doit être un identifiant modifiable.", b.getPosition());
+                    TypeSimple tDroite = typerExpression(b.getDroite());
+                    return record(e, (tDroite == TypeSimple.VIDE) ? TypeSimple.INCONNU : tDroite);
+                }
+
+                // typer RHS
+                TypeSimple tDroite = typerExpression(b.getDroite());
+                if (tDroite == TypeSimple.VIDE) {
+                    err("Impossible d'affecter une expression de type VIDE.", b.getPosition());
+                    return record(e, TypeSimple.INCONNU);
+                }
+
+                String nom = id.getNom();
+                TypeSimple tVarAvant = typeVarCourante(nom);
+
+                // ===== "=" =====
+                if ("=".equals(op)) {
+                    TypeSimple tFinal = appliquerTypeVar(nom, tDroite, b.getPosition());
+                    // on enregistre aussi le type de l'identifiant en tant qu'expression
+                    record(id, tFinal);
+                    return record(e, tFinal);
+                }
+
+                // ===== op composé =====
+                // pour "-=, *=, /=, %=" => ENTIER obligatoire
+                if ("-=".equals(op) || "*=".equals(op) || "/=".equals(op) || "%=".equals(op)) {
+                    // si la var est inconnue, on la force ENTIER
+                    if (tVarAvant == TypeSimple.INCONNU) {
+                        tVarAvant = appliquerTypeVar(nom, TypeSimple.ENTIER, b.getPosition());
+                    }
+                    if (tVarAvant != TypeSimple.ENTIER && tVarAvant != TypeSimple.INCONNU) {
+                        err("Opérateur '" + op + "' nécessite une variable ENTIER.", b.getPosition());
+                    }
+
+                    // RHS: si inconnu et ident, on force ENTIER
+                    forcerEntierSiPossible(b.getDroite(), tDroite);
+                    tDroite = typerExpression(b.getDroite());
+
+                    if (tDroite != TypeSimple.ENTIER && tDroite != TypeSimple.INCONNU) {
+                        err("Opérateur '" + op + "' attend ENTIER à droite, trouvé : " + tDroite, b.getPosition());
+                    }
+
+                    TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.ENTIER, b.getPosition());
+                    record(id, tFinal);
+                    return record(e, tFinal);
+                }
+
+                // ===== "+=" =====
+                // Ici : soit ENTIER+ENTIER, soit concat si variable TEXTE.
+                if ("+=".equals(op)) {
+
+                    // Si variable déjà TEXTE => concat ok (droite peut être TEXTE/ENTIER/... sauf VIDE)
+                    if (tVarAvant == TypeSimple.TEXTE) {
+                        // RHS VIDE déjà exclu
+                        TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.TEXTE, b.getPosition());
+                        record(id, tFinal);
+                        return record(e, tFinal);
+                    }
+
+                    // Si variable inconnue : on décide selon RHS
+                    if (tVarAvant == TypeSimple.INCONNU) {
+                        if (tDroite == TypeSimple.TEXTE) {
+                            TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.TEXTE, b.getPosition());
+                            record(id, tFinal);
+                            return record(e, tFinal);
+                        }
+                        // par défaut : on choisit ENTIER si on peut
+                        if (tDroite == TypeSimple.ENTIER || tDroite == TypeSimple.INCONNU) {
+                            if (tDroite == TypeSimple.INCONNU) forcerEntierSiPossible(b.getDroite(), tDroite);
+                            TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.ENTIER, b.getPosition());
+                            record(id, tFinal);
+                            return record(e, tFinal);
+                        }
+                        err("'+=' invalide : type à droite incompatible : " + tDroite, b.getPosition());
+                        TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.INCONNU, b.getPosition());
+                        record(id, tFinal);
+                        return record(e, TypeSimple.INCONNU);
+                    }
+
+                    // Si variable ENTIER : RHS doit être ENTIER
+                    if (tVarAvant == TypeSimple.ENTIER) {
+                        if (tDroite == TypeSimple.INCONNU) forcerEntierSiPossible(b.getDroite(), tDroite);
+                        tDroite = typerExpression(b.getDroite());
+
+                        if (tDroite != TypeSimple.ENTIER && tDroite != TypeSimple.INCONNU) {
+                            err("'+=' attend ENTIER à droite quand la variable est ENTIER, trouvé : " + tDroite, b.getPosition());
+                            return record(e, TypeSimple.INCONNU);
+                        }
+
+                        TypeSimple tFinal = appliquerTypeVar(nom, TypeSimple.ENTIER, b.getPosition());
+                        record(id, tFinal);
+                        return record(e, tFinal);
+                    }
+
+                    // Sinon : BOOLEEN/CARACTERE etc => interdit
+                    err("'+=' invalide pour une variable de type " + tVarAvant, b.getPosition());
+                    return record(e, TypeSimple.INCONNU);
+                }
+
+                // sécurité
+                err("Opérateur d'affectation non géré : " + op, b.getPosition());
+                return record(e, TypeSimple.INCONNU);
+            }
+
+            // ✅ 2) CAS NORMAL (arith / compare / logique / etc.)
             TypeSimple g = typerExpression(b.getGauche());
             TypeSimple d = typerExpression(b.getDroite());
 
@@ -449,7 +702,7 @@ public class AnalyseSemantique {
             // logique
             if ("&&".equals(op) || "||".equals(op)) {
                 if (g == TypeSimple.BOOLEEN && d == TypeSimple.BOOLEEN) return record(e, TypeSimple.BOOLEEN);
-                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.BOOLEEN); // tolérance
+                if (g == TypeSimple.INCONNU || d == TypeSimple.INCONNU) return record(e, TypeSimple.BOOLEEN);
                 err("Opérateur logique '" + op + "' attend BOOLEEN,BOOLEEN.", b.getPosition());
                 return record(e, TypeSimple.INCONNU);
             }
@@ -457,6 +710,73 @@ public class AnalyseSemantique {
             err("Opérateur binaire inconnu : " + op, b.getPosition());
             return record(e, TypeSimple.INCONNU);
         }
+        if (e instanceof ExpressionAffectation a) {
+            if (!(a.getCible() instanceof Identifiant id) || estConstBool(id)) {
+                err("Côté gauche d'une affectation doit être un identifiant modifiable.", a.getPosition());
+                TypeSimple t = typerExpression(a.getValeur());
+                return record(e, (t == TypeSimple.VIDE) ? TypeSimple.INCONNU : t);
+            }
+            TypeSimple t = appliquerAffectation(id.getNom(), a.getOp(), a.getValeur(), a.getPosition());
+            record(id, t); // utile : l'identifiant a maintenant un type
+            return record(e, t);
+        }
+        if (e instanceof ExpressionUnaire u) {
+            String op = u.getOp();
+            Expression inner = u.getExpr();
+            TypeSimple t = typerExpression(inner);
+
+            if ("!".equals(op)) {
+                if (t == TypeSimple.INCONNU && inner instanceof Identifiant id && !estConstBool(id)) {
+                    infererIdentifiant(id.getNom(), TypeSimple.BOOLEEN, id.getPosition());
+                    t = TypeSimple.BOOLEEN;
+                }
+                if (t != TypeSimple.BOOLEEN && t != TypeSimple.INCONNU) {
+                    err("Opérateur '!' attend BOOLEEN, trouvé : " + t, u.getPosition());
+                }
+                return record(e, TypeSimple.BOOLEEN);
+            }
+
+            if ("-".equals(op) || "+".equals(op)) {
+                if (t == TypeSimple.INCONNU && inner instanceof Identifiant id && !estConstBool(id)) {
+                    infererIdentifiant(id.getNom(), TypeSimple.ENTIER, id.getPosition());
+                    t = TypeSimple.ENTIER;
+                }
+                if (t != TypeSimple.ENTIER && t != TypeSimple.INCONNU) {
+                    err("Opérateur unaire '" + op + "' attend ENTIER, trouvé : " + t, u.getPosition());
+                }
+                return record(e, TypeSimple.ENTIER);
+            }
+
+            if ("++".equals(op) || "--".equals(op)) {
+                if (!(inner instanceof Identifiant id) || estConstBool(id)) {
+                    err("'" + op + "' attend un identifiant modifiable.", u.getPosition());
+                    return record(e, TypeSimple.INCONNU);
+                }
+                infererIdentifiant(id.getNom(), TypeSimple.ENTIER, id.getPosition());
+                TypeSimple tv = typeVarCourante(id.getNom());
+                if (tv != TypeSimple.ENTIER && tv != TypeSimple.INCONNU) {
+                    err("'" + op + "' attend ENTIER, trouvé : " + tv, u.getPosition());
+                }
+                return record(e, TypeSimple.ENTIER);
+            }
+
+            err("Unaire inconnu : " + op, u.getPosition());
+            return record(e, TypeSimple.INCONNU);
+        }
+        if (e instanceof ExpressionPostfix p) {
+            if (!(p.getExpr() instanceof Identifiant id) || estConstBool(id)) {
+                err("'" + p.getOp() + "' postfix attend un identifiant modifiable.", p.getPosition());
+                return record(e, TypeSimple.INCONNU);
+            }
+            infererIdentifiant(id.getNom(), TypeSimple.ENTIER, id.getPosition());
+            TypeSimple tv = typeVarCourante(id.getNom());
+            if (tv != TypeSimple.ENTIER && tv != TypeSimple.INCONNU) {
+                err("'" + p.getOp() + "' attend ENTIER, trouvé : " + tv, p.getPosition());
+            }
+            return record(e, TypeSimple.ENTIER);
+        }
+
+
 
         err("Expression non gérée : " + e.getClass().getSimpleName(), e.getPosition());
         return record(e, TypeSimple.INCONNU);

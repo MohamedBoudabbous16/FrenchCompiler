@@ -15,11 +15,13 @@ main/java/ir/IrLire.class
 main/java/ir/IrNoeud.class
 utils/diag/Diagnostic$Builder.class
 main/java/cli/CompilerCli$ParseResult.class
+main/java/parseur/ast/ExpressionInstr.class
 utils/text/SourceFormatter$Options.class
 utils/diag/Position.class
 main/java/parseur/ast/AvecPosition.class
 utils/lang/Result$Succes.class
 main/java/parseur/ast/Bloc.class
+main/java/parseur/ast/ExpressionPostfix.class
 main/java/ir/IrConstInt.class
 main/java/lexeur/Jeton$1.class
 main/java/parseur/ast/ExpressionBinaire.class
@@ -65,6 +67,7 @@ main/java/optimizer/ConstValue.class
 utils/diag/Gravite.class
 main/java/ir/IrVariable.class
 main/java/cli/CompilerCli$SourceInput.class
+main/java/parseur/ast/ExpressionAffectation.class
 main/java/parseur/ast/Affiche.class
 main/java/ir/IrBinaire.class
 main/java/optimizer/AstReflection.class
@@ -100,6 +103,7 @@ main/java/parseur/ast/Instruction.class
 main/java/ir/convertisseur/IrVersJava$1.class
 main/java/cli/CompilerCli$Exit.class
 main/java/lexeur/TypeJeton.class
+main/java/parseur/ast/ExpressionUnaire.class
 main/java/parseur/AnaSynt.class
 main/java/optimizer/DeadCodeEliminator.class
 main/java/parseur/ast/Lire.class

@@ -17,9 +17,14 @@ public enum TypeJeton {
 
     PointVirgule, Virgule,DeuxPoints, Point, // ici les séparateurs
 
+    PlusEgal, MoinsEgal, MultEgal, DivEgal, ModEgal,
+
+
     Identifiant, Nombre, TexteLitteral, CaractereLitteral, Vrai, Faux, // ici les valeurs et noms
     Affiche,
     AfficheSansRetourLigne,
     Lire,
     FinFichier // ici pour savoir qu'on est à la fin du code
+
+
 }

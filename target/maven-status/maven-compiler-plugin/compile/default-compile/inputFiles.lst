@@ -1,4 +1,5 @@
 /Users/bouda/Desktop/compiler/untitled/src/main/java/codegenerator/AstInspector.java
+/Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/ExpressionAffectation.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/Retourne.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/convertisseur/IrVersJava.java
 /Users/bouda/Desktop/compiler/untitled/src/utils/diag/Diagnostic.java
@@ -24,6 +25,7 @@
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/AppelFonction.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/ExpressionBinaire.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/convertisseur/AstVersIr.java
+/Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/ExpressionPostfix.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/optimizer/Optimizer.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrAffiche.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/Affectation.java
@@ -58,6 +60,7 @@
 /Users/bouda/Desktop/compiler/untitled/src/utils/diag/Diagnostics.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/optimizer/DeadCodeEliminator.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrConstBool.java
+/Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/ExpressionUnaire.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/codegenerator/RuntimeSupport.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrNoeud.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/cli/CompilerCli.java
@@ -76,6 +79,7 @@
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/controle/Si.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/ir/IrAppel.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/Expression.java
+/Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/ExpressionInstr.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/optimizer/ConstantFolder.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/semantic/TypeSimple.java
 /Users/bouda/Desktop/compiler/untitled/src/main/java/parseur/ast/controle/TantQue.java

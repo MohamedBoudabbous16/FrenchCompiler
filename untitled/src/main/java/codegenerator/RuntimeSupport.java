@@ -29,6 +29,12 @@ public final class RuntimeSupport {
     }
 
     private static boolean instrUsesLire(Instruction i) {
+
+        // ✅ NEW : expression statement (x++; a=b=3; x=lire(); etc.)
+        if (i instanceof ExpressionInstr ei) {
+            return exprUsesLire(ei.getExpression());
+        }
+
         if (i instanceof Bloc b) {
             return blocUsesLire(b);
         }
@@ -66,8 +72,22 @@ public final class RuntimeSupport {
     }
 
     private static boolean exprUsesLire(Expression e) {
+        if (e == null) return false;
+
         if (e instanceof Lire) return true;
 
+        // ✅ NEW : tes nouvelles expressions
+        if (e instanceof ExpressionAffectation a) {
+            return exprUsesLire(a.getCible()) || exprUsesLire(a.getValeur());
+        }
+        if (e instanceof ExpressionUnaire u) {
+            return exprUsesLire(u.getExpr());
+        }
+        if (e instanceof ExpressionPostfix p) {
+            return exprUsesLire(p.getExpr());
+        }
+
+        // existant
         if (e instanceof ExpressionBinaire b) {
             return exprUsesLire(b.getGauche()) || exprUsesLire(b.getDroite());
         }

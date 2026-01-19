@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="CA"/>
     <property name="sun.boot.library.path" value="/Users/bouda/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home/lib"/>
-    <property name="sun.java.command" value="/Users/bouda/Desktop/compiler/target/surefire/surefirebooter-20260118192411458_3.jar /Users/bouda/Desktop/compiler/target/surefire 2026-01-18T19-24-11_425-jvmRun1 surefire-20260118192411458_1tmp surefire_0-20260118192411458_2tmp"/>
+    <property name="sun.java.command" value="/Users/bouda/Desktop/compiler/target/surefire/surefirebooter-20260118194615284_3.jar /Users/bouda/Desktop/compiler/target/surefire 2026-01-18T19-46-15_250-jvmRun1 surefire-20260118194615284_1tmp surefire_0-20260118194615284_2tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/Users/bouda/Desktop/compiler/target/test-classes:/Users/bouda/Desktop/compiler/target/classes:/Users/bouda/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/bouda/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/bouda/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.0/junit-jupiter-5.10.0.jar:/Users/bouda/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar:/Users/bouda/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/Users/bouda/.m2/repository/org/junit/platform/junit-platform-commons/1.10.0/junit-platform-commons-1.10.0.jar:/Users/bouda/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/Users/bouda/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.0/junit-jupiter-params-5.10.0.jar:/Users/bouda/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar:/Users/bouda/.m2/repository/org/junit/platform/junit-platform-engine/1.10.0/junit-platform-engine-1.10.0.jar:"/>
@@ -29,7 +29,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="apple.awt.application.name" value="ForkedBooter"/>
-    <property name="surefire.real.class.path" value="/Users/bouda/Desktop/compiler/target/surefire/surefirebooter-20260118192411458_3.jar"/>
+    <property name="surefire.real.class.path" value="/Users/bouda/Desktop/compiler/target/surefire/surefirebooter-20260118194615284_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="23.0.1+11-39"/>
@@ -58,6 +58,6 @@
     <property name="java.class.version" value="67.0"/>
   </properties>
   <testcase name="echappement_java_string" classname="tests.utils.text.StringEscapeTest" time="0.0"/>
-  <testcase name="literal_java_string_et_char" classname="tests.utils.text.StringEscapeTest" time="0.0"/>
+  <testcase name="literal_java_string_et_char" classname="tests.utils.text.StringEscapeTest" time="0.001"/>
   <testcase name="desechapper_basique" classname="tests.utils.text.StringEscapeTest" time="0.0"/>
 </testsuite>

@@ -22,6 +22,7 @@ public class ExpressionAffectation extends Expression {
 
     @Override
     public String genJava(AnalyseSemantique sem) {
-        return "(" + cible.genJava(sem) + " " + op + " " + valeur.genJava(sem) + ")";
+        return cible.genJava(sem) + " " + op + " " + valeur.genJava(sem);
     }
+
 }

@@ -8,7 +8,14 @@ import main.java.parseur.ast.controle.TantQue;
 public final class RuntimeSupport {
 
     private RuntimeSupport() {}
+    private static boolean blocUsesLire(Bloc bloc) {
+        if (bloc == null) return false;
 
+        for (Instruction i : bloc.getInstructions()) {
+            if (instrUsesLire(i)) return true;
+        }
+        return false;
+    }
     /** Solution robuste : détecte lire() dans l'AST, pas dans le code Java généré. */
     public static boolean programmeUsesLire(Programme programme) {
         if (programme == null) return false;
@@ -21,12 +28,6 @@ public final class RuntimeSupport {
         return false;
     }
 
-    private static boolean blocUsesLire(Bloc bloc) {
-        for (Instruction i : bloc.getInstructions()) {
-            if (instrUsesLire(i)) return true;
-        }
-        return false;
-    }
 
     private static boolean instrUsesLire(Instruction i) {
 
@@ -75,6 +76,15 @@ public final class RuntimeSupport {
         if (e == null) return false;
 
         if (e instanceof Lire) return true;
+        if (e instanceof ExpressionAffectation a) {
+            return exprUsesLire(a.getCible()) || exprUsesLire(a.getValeur());
+        }
+        if (e instanceof ExpressionUnaire u) {
+            return exprUsesLire(u.getExpr());
+        }
+        if (e instanceof ExpressionPostfix p) {
+            return exprUsesLire(p.getExpr());
+        }
 
         // ✅ NEW : tes nouvelles expressions
         if (e instanceof ExpressionAffectation a) {
